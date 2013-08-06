@@ -15,7 +15,8 @@ fi
 
 FILES=$(git diff --cached --name-only $AGAINST);
 for FILE in $FILES; do
-    if [ -a $FILE] ; then
+    # Ensure the file still exists (i.e. is not being deleted).
+    if [ -a $FILE ] ; then
         STAT="$(stat -f  "%A" $FILE)"
         if [ "$STAT" -ne "644" ] ; then
             echo "git pre-commit check failed: file $FILE should be 644 not $STAT"
