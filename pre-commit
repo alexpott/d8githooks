@@ -25,4 +25,17 @@ for FILE in $FILES; do
     fi
 done
 
+# Run PHPUnit tests
+# In order to run them we have to set the working directory to the top level
+# directory/core. Unfortunately add the configuration file as an
+# argument does work.
+cd "$(git rev-parse --show-toplevel)/core"
+vendor/phpunit/phpunit/phpunit.php
+PHPUNIT=$?
+if [ "$PHPUNIT" -ne "0" ] ; then
+  # If there are failures set the status to a number other than 0.
+  # PHPUnit will handle the output.
+  STATUS=2
+fi
+
 exit $STATUS
