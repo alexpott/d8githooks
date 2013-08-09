@@ -44,7 +44,10 @@ done
 if [ "$CHECK_JSHINT" == "1" ] ; then
     echo "Testing JavaScript using jhint\n"
     for FILE in $FILES; do
-        if echo "$FILE" | grep -q "\.js$" ; then
+        # If the file is a JS the return will be 0 if not 1
+        echo "$FILE" | grep -q "\.js$"
+        ISJS=$?
+        if [ -a $FILE -a "$ISJS" == "0" ] ; then
             jshint $FILE
             JSHINT=$?
             if [ "$JSHINT" -ne "0" ] ; then
