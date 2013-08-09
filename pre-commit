@@ -13,7 +13,22 @@ else
     AGAINST=4b825dc642cb6eb9a060e54bf8d69288fbee4904
 fi
 
+# Work out what we can do
+
+command_exists () {
+    type "$1" &> /dev/null ;
+}
+
+CHECK_JSHINT=0
+if command_exists jshint ; then
+  CHECK_JSHINT=1
+else
+  echo "jshint not installed, for instructions visit http://www.jshint.com/install/\n"
+fi
+
 FILES=$(git diff --cached --name-only $AGAINST);
+
+# Ensure we have the correct file permissions
 for FILE in $FILES; do
     # Ensure the file still exists (i.e. is not being deleted).
     if [ -a $FILE ] ; then
@@ -25,17 +40,44 @@ for FILE in $FILES; do
     fi
 done
 
+# Ensure we pass the jshint test
+if [ "$CHECK_JSHINT" == "1" ] ; then
+    echo "Testing JavaScript using jhint\n"
+    for FILE in $FILES; do
+        if echo "$FILE" | grep -q "\.js$" ; then
+            jshint $FILE
+            JSHINT=$?
+            if [ "$JSHINT" -ne "0" ] ; then
+                # If there are failures set the status to a number other than 0.
+                # PHPUnit will handle the output.
+                STATUS=1
+            fi
+        fi
+    done
+fi
+
 # Run PHPUnit tests
 # In order to run them we have to set the working directory to the top level
 # directory/core. Unfortunately add the configuration file as an
 # argument does work.
-cd "$(git rev-parse --show-toplevel)/core"
-vendor/phpunit/phpunit/phpunit.php
-PHPUNIT=$?
-if [ "$PHPUNIT" -ne "0" ] ; then
-  # If there are failures set the status to a number other than 0.
-  # PHPUnit will handle the output.
-  STATUS=2
+
+# Find out if we need to run phpunit
+CHECK_PHPUNIT=0
+for FILE in $FILES; do
+    if echo "$FILE" | grep -E -q "\.(php|module|inc|engine|install|profile|theme)$" ; then
+        CHECK_PHPUNIT=1
+    fi
+done
+
+if [ "$CHECK_PHPUNIT" == "1" ] ; then
+    cd "$(git rev-parse --show-toplevel)/core"
+    vendor/phpunit/phpunit/phpunit.php
+    PHPUNIT=$?
+    if [ "$PHPUNIT" -ne "0" ] ; then
+        # If there are failures set the status to a number other than 0.
+        # PHPUnit will handle the output.
+        STATUS=1
+    fi
 fi
 
 exit $STATUS
