@@ -37,7 +37,6 @@ done
 # Ensure we pass the jshint test
 if command_exists jshint ; then
     CHECK_JSHINT=0
-    echo "Testing JavaScript using jhint\n"
     for FILE in $FILES; do
         # If the file is a JS the return will be 0 if not 1
         echo "$FILE" | grep -q "\.js$"
@@ -48,6 +47,7 @@ if command_exists jshint ; then
     done
 
     if [ "$CHECK_JSHINT" == "1" ] ; then
+        echo "Testing JavaScript using jhint\n"
         cd "$(git rev-parse --show-toplevel)"
         jshint ./core
         JSHINT=$?
