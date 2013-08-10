@@ -19,12 +19,6 @@ command_exists () {
     type "$1" &> /dev/null ;
 }
 
-CHECK_JSHINT=0
-if command_exists jshint ; then
-  CHECK_JSHINT=1
-else
-  echo "jshint not installed, for instructions visit http://www.jshint.com/install/\n"
-fi
 
 FILES=$(git diff --cached --name-only $AGAINST);
 
@@ -41,22 +35,32 @@ for FILE in $FILES; do
 done
 
 # Ensure we pass the jshint test
-if [ "$CHECK_JSHINT" == "1" ] ; then
+if command_exists jshint ; then
+    CHECK_JSHINT=0
     echo "Testing JavaScript using jhint\n"
     for FILE in $FILES; do
         # If the file is a JS the return will be 0 if not 1
         echo "$FILE" | grep -q "\.js$"
         ISJS=$?
         if [ -a $FILE -a "$ISJS" == "0" ] ; then
-            jshint $FILE
-            JSHINT=$?
-            if [ "$JSHINT" -ne "0" ] ; then
-                # If there are failures set the status to a number other than 0.
-                # PHPUnit will handle the output.
-                STATUS=1
-            fi
+            CHECK_JSHINT=1
         fi
     done
+
+    if [ "$CHECK_JSHINT" == "1" ] ; then
+        cd "$(git rev-parse --show-toplevel)"
+        jshint ./core
+        JSHINT=$?
+        if [ "$JSHINT" -ne "0" ] ; then
+            echo "\033[41;37mJSHint test failed  \033[0m\n"
+            # If there are failures set the status to a number other than 0.
+            STATUS=1
+        else
+            echo "\033[42;30mJSHint test passed  \033[0m\n"
+        fi
+    fi
+else
+  echo "jshint not installed, for instructions visit http://www.jshint.com/install/\n"
 fi
 
 # Run PHPUnit tests
@@ -82,5 +86,4 @@ if [ "$CHECK_PHPUNIT" == "1" ] ; then
         STATUS=1
     fi
 fi
-
 exit $STATUS
