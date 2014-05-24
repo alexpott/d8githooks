@@ -36,33 +36,33 @@ for FILE in $FILES; do
     fi
 done
 
-# Ensure we pass the jshint test
-if command_exists jshint ; then
-    CHECK_JSHINT=0
+# Ensure we pass the eslint test
+if command_exists eslint ; then
+    CHECK_ESLINT=0
     for FILE in $FILES; do
         # If the file is a JS the return will be 0 if not 1
         echo "$FILE" | grep -q "\.js$"
         ISJS=$?
         if [ -a $FILE -a "$ISJS" == "0" ] ; then
-            CHECK_JSHINT=1
+            CHECK_ESLINT=1
         fi
     done
 
-    if [ "$CHECK_JSHINT" == "1" ] ; then
-        echo "Testing JavaScript using jhint\n"
+    if [ "$CHECK_ESLINT" == "1" ] ; then
+        echo "Testing JavaScript using eslint\n"
         cd "$(git rev-parse --show-toplevel)"
-        jshint ./core
-        JSHINT=$?
-        if [ "$JSHINT" -ne "0" ] ; then
-            echo "\033[41;37mJSHint test failed  \033[0m\n"
+        eslint ./
+        ESLINT=$?
+        if [ "$ESLINT" -ne "0" ] ; then
+            echo "\033[41;37meslint test failed  \033[0m\n"
             # If there are failures set the status to a number other than 0.
             STATUS=1
         else
-            echo "\033[42;30mJSHint test passed  \033[0m\n"
+            echo "\033[42;30meslint test passed  \033[0m\n"
         fi
     fi
 else
-  echo "jshint not installed, for instructions visit http://www.jshint.com/install/\n"
+  echo "eslint not installed, for instructions visit https://github.com/eslint/eslint\n"
 fi
 
 # Run PHPUnit tests
