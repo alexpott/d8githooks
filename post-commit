@@ -1,4 +1,5 @@
 #!/bin/sh
 REV=`git rev-parse --verify HEAD | head -c7`
-echo "Committed <a href=\"http://drupalcode.org/project/drupal.git/commit/?id=$REV\">$REV</a> and pushed to 8.0.x. Thanks!" | pbcopy
+BRANCH=`git rev-parse --symbolic --abbrev-ref HEAD`
+echo "Committed <a href=\"http://drupalcode.org/project/drupal.git/commit/?id=$REV\">$REV</a> and pushed to $BRANCH. Thanks!" | pbcopy
 pbpaste | cowsay
