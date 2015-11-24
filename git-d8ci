@@ -1,0 +1,40 @@
+#!/bin/sh
+
+# Instructions for set up:
+# 1. Put this in a file named git-d8ci in your $PATH
+# 2. chmod a+x git-d8ci
+
+# Instructions for use:
+# 1. Goto Drupal checkout on a branch you want to commit to.
+# 2. Use the command "git d8ci https://www.drupal.org/files/issues/PATH/TO/PATCH SOME_OTHER_BRANCH_THAT_NEEDS_THE_COMMIT"
+# 3. Remember to use the push command it prepares for you at the end. Automatic pushes are not done to allow review.
+# Example command (whilst on 8.1.x): git d8ci https://www.drupal.org/files/issues/2603958-12.patch 8.0.x
+
+
+# Ensure we exit as soon as there is an error
+set -e
+
+patch=$1
+test -z $patch && echo "patch required." 1>&2 && exit 1
+
+first_branch=`git rev-parse --abbrev-ref HEAD`
+
+git pull --rebase
+curl $patch | git a
+# @todo add message support
+git commit
+
+# @todo check branch exists
+second_branch=$2
+test -z $second_branch && exit 0
+
+commit_hash=`git log -n 1 --pretty=format:"%H"`
+git checkout $second_branch
+git pull --rebase
+git cherry-pick $commit_hash
+
+git checkout $first_branch
+# @todo add ability to push both branches...
+echo "git push origin $first_branch && git push origin $second_branch" | pbcopy
+echo "Use the following command to push the changes: git push origin $first_branch && git push origin $second_branch"
+
