@@ -35,7 +35,5 @@ git pull --rebase
 git cherry-pick $commit_hash
 
 git checkout $first_branch
-# @todo add ability to push both branches...
-echo "git push origin $first_branch && git push origin $second_branch" | pbcopy
 echo "Use the following command to push the changes: git push origin $first_branch && git push origin $second_branch"
 
