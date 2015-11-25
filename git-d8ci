@@ -7,19 +7,20 @@
 # Instructions for use:
 # 1. Goto Drupal checkout on a branch you want to commit to.
 # 2. Apply the patch you want to commit and review it
-# 3. git d8ci "commit message" OTHER_BRANCH_TO_COMMIT_TO
+# 3. git d8ci OTHER_BRANCH_TO_COMMIT_TO "commit message"
 # 4. Remember to use the push command it prepares for you at the end. Automatic pushes are not done to allow review.
-# Example command (whilst on 8.1.x): git d8ci 'Issue #2608072 by ameymudras: "Object of type "@class" cannot be printed." exception message should not be translated' 8.0.x
+# Example command (whilst on 8.1.x): git d8ci 8.0.x 'Issue #2608072 by ameymudras: "Object of type "@class" cannot be printed." exception message should not be translated'
 
 
 # Ensure we exit as soon as there is an error
 set -e
 
-message=$1
+second_branch=$1
+test -z $second_branch && echo "Other branch to commit to required." 1>&2 && exit 1
+
+message=$2
 test -z $message && echo "Commit message required." 1>&2 && exit 1
 
-second_branch=$2
-test -z $second_branch && echo "Other branch to commit to required." 1>&2 && exit 1
 # Check econd branch exists
 git rev-parse --verify $second_branch
 
@@ -29,10 +30,10 @@ first_branch=`git rev-parse --abbrev-ref HEAD`
 git commit -m "$message"
 commit_hash=`git log -n 1 --pretty=format:"%H"`
 
-# Cherry pick to the second branch
+# Cherry pick to the second branch. The -x option adds an additional line to the commit message linking back to the original commit.
 git checkout $second_branch
 git pull --rebase
-git cherry-pick $commit_hash
+git cherry-pick -x $commit_hash
 
 git checkout $first_branch
 echo "Use the following command to push the changes: git push origin $first_branch && git push origin $second_branch"
