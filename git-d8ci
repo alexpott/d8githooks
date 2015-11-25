@@ -6,29 +6,30 @@
 
 # Instructions for use:
 # 1. Goto Drupal checkout on a branch you want to commit to.
-# 2. Use the command "git d8ci https://www.drupal.org/files/issues/PATH/TO/PATCH SOME_OTHER_BRANCH_THAT_NEEDS_THE_COMMIT"
-# 3. Remember to use the push command it prepares for you at the end. Automatic pushes are not done to allow review.
-# Example command (whilst on 8.1.x): git d8ci https://www.drupal.org/files/issues/2603958-12.patch 8.0.x
+# 2. Apply the patch you want to commit and review it
+# 3. git d8ci "commit message" OTHER_BRANCH_TO_COMMIT_TO
+# 4. Remember to use the push command it prepares for you at the end. Automatic pushes are not done to allow review.
+# Example command (whilst on 8.1.x): git d8ci 'Issue #2608072 by ameymudras: "Object of type "@class" cannot be printed." exception message should not be translated' 8.0.x
 
 
 # Ensure we exit as soon as there is an error
 set -e
 
-patch=$1
-test -z $patch && echo "patch required." 1>&2 && exit 1
+message=$1
+test -z $message && echo "Commit message required." 1>&2 && exit 1
+
+second_branch=$2
+test -z $second_branch && echo "Other branch to commit to required." 1>&2 && exit 1
+# Check econd branch exists
+git rev-parse --verify $second_branch
 
 first_branch=`git rev-parse --abbrev-ref HEAD`
 
-git pull --rebase
-curl $patch | git a
-# @todo add message support
-git commit
-
-# @todo check branch exists
-second_branch=$2
-test -z $second_branch && exit 0
-
+# Commit patch to the first branch
+git commit -m "$message"
 commit_hash=`git log -n 1 --pretty=format:"%H"`
+
+# Cherry pick to the second branch
 git checkout $second_branch
 git pull --rebase
 git cherry-pick $commit_hash
