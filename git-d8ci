@@ -19,7 +19,7 @@ second_branch=$1
 test -z $second_branch && echo "Other branch to commit to required." 1>&2 && exit 1
 
 message=$2
-test -z $message && echo "Commit message required." 1>&2 && exit 1
+test -z "$message" && echo "Commit message required." 1>&2 && exit 1
 
 # Check econd branch exists
 git rev-parse --verify $second_branch
