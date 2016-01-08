@@ -21,6 +21,7 @@ command_exists () {
 
 
 FILES=$(git diff --cached --name-only $AGAINST);
+TOP_LEVEL=$(git rev-parse --show-toplevel);
 
 # Ensure we have the correct file permissions
 for FILE in $FILES; do
@@ -35,6 +36,26 @@ for FILE in $FILES; do
       fi
     fi
 done
+
+# Test files with phpcs rules... needs PHPCS 2.5.0
+if command_exists phpcs ; then
+    cd "$TOP_LEVEL/core"
+    for FILE in $FILES; do
+        if [ -f "$TOP_LEVEL/$FILE" ]; then
+            # If the file is a JS the return will be 0 if not 1
+            phpcs "$TOP_LEVEL/$FILE"
+            PHPCS=$?
+            if [ "$PHPCS" -ne "0" ] ; then
+                # If there are failures set the status to a number other than 0.
+                STATUS=1
+            fi
+        fi
+    done
+
+    cd $TOP_LEVEL
+else
+  echo "phpcs not installed, for instructions https://www.drupal.org/node/1419988\n"
+fi
 
 # Ensure we pass the eslint test
 if command_exists eslint ; then
@@ -72,20 +93,22 @@ fi
 
 # Find out if we need to run phpunit
 CHECK_PHPUNIT=0
-for FILE in $FILES; do
-    if echo "$FILE" | grep -E -q "\.(php|module|inc|engine|install|profile|theme)$" ; then
-        CHECK_PHPUNIT=1
-    fi
-done
+# PHPUnit testing is expensive - disabled for the time being.
+#for FILE in $FILES; do
+#    if echo "$FILE" | grep -E -q "\.(php|module|inc|engine|install|profile|theme)$" ; then
+#        CHECK_PHPUNIT=1
+#    fi
+#done
 
 if [ "$CHECK_PHPUNIT" == "1" ] ; then
-    cd "$(git rev-parse --show-toplevel)/core"
-    php vendor/phpunit/phpunit/phpunit --testsuite unit
+    cd "$TOP_LEVEL/core"
+    php ../vendor/phpunit/phpunit/phpunit --testsuite unit
     PHPUNIT=$?
     if [ "$PHPUNIT" -ne "0" ] ; then
         # If there are failures set the status to a number other than 0.
         # PHPUnit will handle the output.
         STATUS=1
     fi
+    cd $TOP_LEVEL
 fi
 exit $STATUS
