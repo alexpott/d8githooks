@@ -41,8 +41,7 @@ done
 if command_exists phpcs ; then
     cd "$TOP_LEVEL/core"
     for FILE in $FILES; do
-        if [ -f "$TOP_LEVEL/$FILE" ]; then
-            # If the file is a JS the return will be 0 if not 1
+        if [[ -f "$TOP_LEVEL/$FILE" ]] && [[ $FILE =~ \.(inc|install|module|php|profile|test|theme)$ ]]; then
             phpcs "$TOP_LEVEL/$FILE"
             PHPCS=$?
             if [ "$PHPCS" -ne "0" ] ; then
