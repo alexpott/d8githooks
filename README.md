@@ -12,8 +12,10 @@ This project depends on:
 1. Drupal 8
 1. pbcopy & pbpaste (yep because I use OS X)
 1. moosay
-1. eslint
-1. phpunit
+1. [phpcs](http://pear.php.net/package/PHP_CodeSniffer/) - see https://www.drupal.org/node/1419988 for instructions.
+1. [eslint](http://eslint.org/)
+1. [phpunit](https://phpunit.de/)
+
 
 ## How to install
 
