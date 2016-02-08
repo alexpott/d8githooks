@@ -11,6 +11,7 @@ This project depends on:
 
 1. Drupal 8
 1. [composer](https://getcomposer.org/)
+1. [Node.js](https://nodejs.org/en/download/)
 1. pbcopy & pbpaste (yep because I use OS X)
 1. moosay
 1. [phpcs](http://pear.php.net/package/PHP_CodeSniffer/) - see https://www.drupal.org/node/1419988 for instructions.
