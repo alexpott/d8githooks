@@ -32,5 +32,11 @@ git add core/core.services.yml
 git commit -m "Test."
 ````
 
+You should see the error:
+
+````
+git pre-commit check failed: file core/core.services.yml should be 644 not 777`
+````
+
 ## How to use
 @todo something about what standard message(s) to copy/paste.
