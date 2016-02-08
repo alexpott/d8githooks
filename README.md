@@ -12,8 +12,9 @@ This project depends on:
 1. Drupal 8
 1. [composer](https://getcomposer.org/download/)
 1. [Node.js](https://nodejs.org/en/download/)
+1. [Homebrew](http://brew.sh/)
 1. pbcopy & pbpaste (yep because I use OS X)
-1. moosay
+1. cowsay (```brew install cowsay```)
 1. [phpcs](http://pear.php.net/package/PHP_CodeSniffer/) and [Coder](https://www.drupal.org/project/coder) - see https://www.drupal.org/node/1419988 for instructions.
 1. [eslint](http://eslint.org/docs/user-guide/getting-started)
 1. [phpunit](https://phpunit.de/getting-started.html)
