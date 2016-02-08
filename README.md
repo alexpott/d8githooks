@@ -10,6 +10,7 @@ _How do I, as a developer, start working on the project?_
 This project depends on:
 
 1. Drupal 8
+1. [composer](https://getcomposer.org/)
 1. pbcopy & pbpaste (yep because I use OS X)
 1. moosay
 1. [phpcs](http://pear.php.net/package/PHP_CodeSniffer/) - see https://www.drupal.org/node/1419988 for instructions.
