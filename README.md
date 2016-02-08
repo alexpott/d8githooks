@@ -26,8 +26,8 @@ To test that it's working, introduce a file permissions error and then attempt t
 ````
 cd ~/Sites/8.x
 chmod 777 core/core.services.yml
-echo 'test' >> README.txt 
-git add README.txt
+echo 'test' >> core/core.services.yml 
+git add core/core.services.yml
 git commit -m "Test."
 ````
 
