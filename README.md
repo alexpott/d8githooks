@@ -1,6 +1,9 @@
 # Drupal core committer git hooks
 
-## Project Setup
+## About this project
+This project performs automated checks (e.g. file permissions, PHP/CSS/JS coding standards) before/after performing a commit, to ensure regressions are not accidentally committed.
+
+## Project setup
 
 _How do I, as a developer, start working on the project?_
 
@@ -12,8 +15,21 @@ This project depends on:
 1. eslint
 1. phpunit
 
-## How to use
+## How to install
 
-1. Clone the respository into [project/dir]
-1. Navigate to a drupal 8 [d8/.git/hooks]
-1. Create symlinks to pre-commit and post-commit files
+1. Clone the respository into any directory; for example your home directory: ````cd ~; git clone https://github.com/alexpott/d8githooks.git````
+1. Navigate to the ````.git/hooks```` directory inside the Drupal 8 clone from which you commit patches ````cd ~/Sites/8.x/.git/hooks````
+1. Create symlinks to pre-commit and post-commit files ````ln -sfn ~/githooks/pre-commit pre-commit; ln -sfn ~/githooks/post-commit post-commit````
+
+To test that it's working, introduce a file permissions error and then attempt to commit a text change:
+
+````
+cd ~/Sites/8.x
+chmod 777 core/core.services.yml
+echo 'test' >> README.txt 
+git add README.txt
+git commit -m "Test."
+````
+
+## How to use
+@todo something about what standard message(s) to copy/paste.
