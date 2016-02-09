@@ -34,7 +34,11 @@ commit_hash=`git log -n 1 --pretty=format:"%H"`
 git checkout $second_branch
 git pull --rebase
 git cherry-pick -x $commit_hash
+second_hash=`git rev-parse --verify HEAD | head -c7`
 
 git checkout $first_branch
 echo "Use the following command to push the changes: git push origin $first_branch && git push origin $second_branch"
 
+first_hash=`echo $commit_hash | head -c7`
+TEXT="Committed and pushed <a href=\"http://cgit.drupalcode.org/drupal/commit/?id=$first_hash\">$first_hash</a> to $first_branch and <a href=\"http://cgit.drupalcode.org/drupal/commit/?id=$second_hash\">$second_hash</a> to $second_branch. Thanks!"
+echo $TEXT | pbcopy
