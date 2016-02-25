@@ -6,8 +6,10 @@ command_exists () {
 REV=`git rev-parse --verify HEAD | head -c7`
 BRANCH=`git rev-parse --symbolic --abbrev-ref HEAD`
 TEXT="Committed <a href=\"http://cgit.drupalcode.org/drupal/commit/?id=$REV\">$REV</a> and pushed to $BRANCH. Thanks!"
-if command_exists pbcopy  && command_exists cowsay ; then
+if command_exists pbcopy ; then
   echo $TEXT | pbcopy
+fi
+if command_exists cowsay ; then
   # Bug in cowsay's text wrapping :(
   cowsay -W 200 $TEXT
 else
