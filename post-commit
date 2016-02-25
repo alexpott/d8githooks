@@ -1,7 +1,15 @@
 #!/bin/sh
+command_exists () {
+    type "$1" &> /dev/null ;
+}
+
 REV=`git rev-parse --verify HEAD | head -c7`
 BRANCH=`git rev-parse --symbolic --abbrev-ref HEAD`
 TEXT="Committed <a href=\"http://cgit.drupalcode.org/drupal/commit/?id=$REV\">$REV</a> and pushed to $BRANCH. Thanks!"
-echo $TEXT | pbcopy
-# Bug in cowsay's text wrapping :(
-cowsay -W 200 $TEXT
+if command_exists pbcopy  && command_exists cowsay ; then
+  echo $TEXT | pbcopy
+  # Bug in cowsay's text wrapping :(
+  cowsay -W 200 $TEXT
+else
+  echo "$TEXT\n"
+fi
