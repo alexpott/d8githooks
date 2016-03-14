@@ -21,8 +21,10 @@ test -z $second_branch && echo "Other branch to commit to required." 1>&2 && exi
 message=$2
 test -z "$message" && echo "Commit message required." 1>&2 && exit 1
 
-# Check econd branch exists
-git rev-parse --verify $second_branch
+# Check second branch exists
+if ! git rev-parse --verify $second_branch >/dev/null 2>&1; then
+  echo "git branch $second_branch not found." && exit 1
+fi
 
 first_branch=`git rev-parse --abbrev-ref HEAD`
 
