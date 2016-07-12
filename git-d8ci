@@ -26,8 +26,10 @@ test -z "$message" && echo "Commit message required." 1>&2 && exit 1
 
 for branch in $branches
 do
-  # Check others branches exists
-  git rev-parse --verify $branch
+  # Check branch exists
+  if ! git rev-parse --verify $branch >/dev/null 2>&1; then
+    echo "git branch $branch not found." && exit 1
+  fi
 done
 
 first_branch=`git rev-parse --abbrev-ref HEAD`
@@ -37,15 +39,22 @@ git commit -m "$message"
 commit_hash=`git log -n 1 --pretty=format:"%H"`
 
 push_message="Use the following command to push the changes: git push origin $first_branch"
+
+thanks_message="Committed and pushed <a href=\"http://cgit.drupalcode.org/drupal/commit/?id=$commit_hash\">$commit_hash</a> to $first_branch"
+echo $TEXT | pbcopy
+
 for branch in $branches
 do
   # Cherry pick to the other branches. The -x option adds an additional line to the commit message linking back to the original commit.
   git checkout $branch
   git pull --rebase
   git cherry-pick -x $commit_hash
+  branch_hash=`git rev-parse --verify HEAD | head -c7`
+  thanks_message="$thanks_message and <a href=\"http://cgit.drupalcode.org/drupal/commit/?id=$branch_hash\">$branch_hash</a> to $branch"
   push_message="$push_message && git push origin $branch"
 done
 
 git checkout $first_branch
 echo "$push_message"
 
+echo "$thanks_message. Thanks!" | pbcopy
