@@ -7,22 +7,28 @@
 # Instructions for use:
 # 1. Goto Drupal checkout on a branch you want to commit to.
 # 2. Apply the patch you want to commit and review it
-# 3. git d8ci OTHER_BRANCH_TO_COMMIT_TO "commit message"
+# 3. git d8ci OTHER_BRANCHES_TO_COMMIT_TO "commit message"
 # 4. Remember to use the push command it prepares for you at the end. Automatic pushes are not done to allow review.
 # Example command (whilst on 8.1.x): git d8ci 8.0.x 'Issue #2608072 by ameymudras: "Object of type "@class" cannot be printed." exception message should not be translated'
+# Example command (whilst on 8.2.x): git d8ci 8.1.x,8.0.x 'Issue #2608072 by ameymudras: "Object of type "@class" cannot be printed." exception message should not be translated'
 
 
 # Ensure we exit as soon as there is an error
 set -e
 
-second_branch=$1
-test -z $second_branch && echo "Other branch to commit to required." 1>&2 && exit 1
+branches=$1
+test -z $branches && echo "Other branch to commit to required." 1>&2 && exit 1
+
+branches=$(echo $branches | tr "," "\n")
 
 message=$2
 test -z "$message" && echo "Commit message required." 1>&2 && exit 1
 
-# Check econd branch exists
-git rev-parse --verify $second_branch
+for branch in $branches
+do
+  # Check others branches exists
+  git rev-parse --verify $branch
+done
 
 first_branch=`git rev-parse --abbrev-ref HEAD`
 
@@ -30,11 +36,16 @@ first_branch=`git rev-parse --abbrev-ref HEAD`
 git commit -m "$message"
 commit_hash=`git log -n 1 --pretty=format:"%H"`
 
-# Cherry pick to the second branch. The -x option adds an additional line to the commit message linking back to the original commit.
-git checkout $second_branch
-git pull --rebase
-git cherry-pick -x $commit_hash
+push_message="Use the following command to push the changes: git push origin $first_branch"
+for branch in $branches
+do
+  # Cherry pick to the other branches. The -x option adds an additional line to the commit message linking back to the original commit.
+  git checkout $branch
+  git pull --rebase
+  git cherry-pick -x $commit_hash
+  push_message="$push_message && git push origin $branch"
+done
 
 git checkout $first_branch
-echo "Use the following command to push the changes: git push origin $first_branch && git push origin $second_branch"
+echo "$push_message"
 
