@@ -37,7 +37,7 @@ for FILE in $FILES; do
       fi
     fi
     if [[ "$FILE" =~ ^vendor/ ]]; then
-      echo "git pre-commit check failed: file in vendor directory being committed ($FILE)"
+      echo "git pre-commit check failed: file in vendor directory being committed ($FILE). Copy the example.gitignore to .gitignore in Drupal root and unstage any changes in vendor."
       STATUS=1
     fi
 done
