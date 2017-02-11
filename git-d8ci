@@ -7,40 +7,54 @@
 # Instructions for use:
 # 1. Goto Drupal checkout on a branch you want to commit to.
 # 2. Apply the patch you want to commit and review it
-# 3. git d8ci OTHER_BRANCH_TO_COMMIT_TO "commit message"
+# 3. git d8ci OTHER_BRANCHES_TO_COMMIT_TO "commit message"
 # 4. Remember to use the push command it prepares for you at the end. Automatic pushes are not done to allow review.
 # Example command (whilst on 8.1.x): git d8ci 8.0.x 'Issue #2608072 by ameymudras: "Object of type "@class" cannot be printed." exception message should not be translated'
+# Example command (whilst on 8.2.x): git d8ci 8.1.x,8.0.x 'Issue #2608072 by ameymudras: "Object of type "@class" cannot be printed." exception message should not be translated'
 
 
 # Ensure we exit as soon as there is an error
 set -e
 
-second_branch=$1
-test -z $second_branch && echo "Other branch to commit to required." 1>&2 && exit 1
+branches=$1
+test -z $branches && echo "Other branch to commit to required." 1>&2 && exit 1
+
+branches=$(echo $branches | tr "," "\n")
 
 message=$2
 test -z "$message" && echo "Commit message required." 1>&2 && exit 1
 
-# Check second branch exists
-if ! git rev-parse --verify $second_branch >/dev/null 2>&1; then
-  echo "git branch $second_branch not found." && exit 1
-fi
+for branch in $branches
+do
+  # Check branch exists
+  if ! git rev-parse --verify $branch >/dev/null 2>&1; then
+    echo "git branch $branch not found." && exit 1
+  fi
+done
 
 first_branch=`git rev-parse --abbrev-ref HEAD`
 
 # Commit patch to the first branch
 git commit -m "$message"
 commit_hash=`git log -n 1 --pretty=format:"%H"`
+short_commit_hash=`git log -n 1 --pretty=format:"%h"`
+push_message="Use the following command to push the changes: git push origin $first_branch"
 
-# Cherry pick to the second branch. The -x option adds an additional line to the commit message linking back to the original commit.
-git checkout $second_branch
-git pull --rebase
-git cherry-pick -x $commit_hash
-second_hash=`git rev-parse --verify HEAD | head -c7`
+thanks_message="Committed and pushed <a href=\"http://cgit.drupalcode.org/drupal/commit/?id=$short_commit_hash\">$short_commit_hash</a> to $first_branch"
+echo $TEXT | pbcopy
+
+for branch in $branches
+do
+  # Cherry pick to the other branches. The -x option adds an additional line to the commit message linking back to the original commit.
+  git checkout $branch
+  git pull --rebase
+  git cherry-pick -x $commit_hash
+  branch_hash=`git log -n 1 --pretty=format:"%h"`
+  thanks_message="$thanks_message and <a href=\"http://cgit.drupalcode.org/drupal/commit/?id=$branch_hash\">$branch_hash</a> to $branch"
+  push_message="$push_message && git push origin $branch"
+done
 
 git checkout $first_branch
-echo "Use the following command to push the changes: git push origin $first_branch && git push origin $second_branch"
+echo "$push_message"
 
-first_hash=`echo $commit_hash | head -c7`
-TEXT="Committed and pushed <a href=\"http://cgit.drupalcode.org/drupal/commit/?id=$first_hash\">$first_hash</a> to $first_branch and <a href=\"http://cgit.drupalcode.org/drupal/commit/?id=$second_hash\">$second_hash</a> to $second_branch. Thanks!"
-echo $TEXT | pbcopy
+echo "$thanks_message. Thanks!" | pbcopy

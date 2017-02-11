@@ -38,11 +38,11 @@ for FILE in $FILES; do
 done
 
 # Test files with phpcs rules... needs PHPCS 2.5.0
-if command_exists phpcs ; then
+if command_exists vendor/bin/phpcs ; then
  #   cd "$TOP_LEVEL/core"
     for FILE in $FILES; do
         if [[ -f "$TOP_LEVEL/$FILE" ]] && [[ $FILE =~ \.(inc|install|module|php|profile|test|theme)$ ]]; then
-            phpcs "$TOP_LEVEL/$FILE" --standard="$TOP_LEVEL/core/phpcs.xml.dist"
+            vendor/bin/phpcs "$TOP_LEVEL/$FILE" --standard="$TOP_LEVEL/core/phpcs.xml.dist"
             PHPCS=$?
             if [ "$PHPCS" -ne "0" ] ; then
                 # If there are failures set the status to a number other than 0.
@@ -56,7 +56,7 @@ if command_exists phpcs ; then
 
     cd $TOP_LEVEL
 else
-  echo "phpcs not installed, for instructions https://www.drupal.org/node/1419988\n"
+  echo "phpcs not installed, run \"composer install\" in the Drupal root directory"
 fi
 
 # Ensure we pass the eslint test
@@ -77,7 +77,7 @@ if command_exists eslint ; then
         fi
     done
 else
-  echo "eslint not installed, for instructions visit https://github.com/eslint/eslint\n"
+  echo "eslint not installed, for instructions visit https://github.com/eslint/eslint"
 fi
 
 # Run PHPUnit tests
