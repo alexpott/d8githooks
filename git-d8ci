@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Instructions for set up:
 # 1. Put this in a file named git-d8ci in your $PATH
