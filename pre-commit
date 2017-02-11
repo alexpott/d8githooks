@@ -29,7 +29,7 @@ for FILE in $FILES; do
     if [ -a $FILE ] ; then
       if [ ${FILE: -3} != ".sh" ] ; then
         STAT="$(stat -c  "%a" $FILE)"
-        if [ "$STAT" -ne "640" ] ; then
+        if [ "$STAT" -ne "644" ] ; then
             echo "git pre-commit check failed: file $FILE should be 644 not $STAT"
             STATUS=1
         fi

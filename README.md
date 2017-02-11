@@ -10,22 +10,22 @@ _How do I, as a developer, start working on the project?_
 This project depends on:
 
 1. Drupal 8
-2. [composer](https://getcomposer.org/download/)
-3. [Node.js](https://nodejs.org/en/download/)
-4. [Homebrew](http://brew.sh/) (only for OS X)
-5. pbcopy & pbpaste (for linux see http://superuser.com/a/288333/143345)
-6. cowsay (OS X `brew install cowsay` or in Ubuntu `apt-get install cowsay`)
-7. [phpcs](http://pear.php.net/package/PHP_CodeSniffer/) and [Coder](https://www.drupal.org/project/coder) - see https://www.drupal.org/node/1419988 for instructions.
-8. [eslint](http://eslint.org/docs/user-guide/getting-started)
-9. [phpunit](https://phpunit.de/getting-started.html)
+1. [composer](https://getcomposer.org/download/)
+1. [Node.js](https://nodejs.org/en/download/)
+1. [Homebrew](http://brew.sh/) (only for OS X)
+1. pbcopy & pbpaste (for linux see http://superuser.com/a/288333/143345)
+1. cowsay (OS X `brew install cowsay` or in Ubuntu `apt-get install cowsay`)
+1. [phpcs](http://pear.php.net/package/PHP_CodeSniffer/) and [Coder](https://www.drupal.org/project/coder) - see https://www.drupal.org/node/1419988 for instructions.
+1. [eslint](http://eslint.org/docs/user-guide/getting-started)
+1. [phpunit](https://phpunit.de/getting-started.html)
 
 
 ## How to install
 
 1. Clone the respository into any directory; for example your home directory: ````cd ~; git clone https://github.com/alexpott/d8githooks.git````
-2. Navigate to the ````.git/hooks```` directory inside the Drupal 8 clone from which you commit patches ````cd ~/Sites/8.x/.git/hooks````
-3. Create symlinks to pre-commit and post-commit files ````ln -sfn ~/d8githooks/pre-commit pre-commit; ln -sfn ~/d8githooks/post-commit post-commit````
-4. Mark the hooks as executable. ````chmod u+x pre-commit; chmod u+x post-commit````
+1. Navigate to the ````.git/hooks```` directory inside the Drupal 8 clone from which you commit patches ````cd ~/Sites/8.x/.git/hooks````
+1. Create symlinks to pre-commit and post-commit files ````ln -sfn ~/d8githooks/pre-commit pre-commit; ln -sfn ~/d8githooks/post-commit post-commit````
+1. Mark the hooks as executable. ````chmod u+x pre-commit; chmod u+x post-commit````
 
 To test that it's working, introduce a file permissions error and then attempt to commit a text change:
 
