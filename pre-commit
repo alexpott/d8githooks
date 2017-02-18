@@ -23,17 +23,22 @@ command_exists () {
 FILES=$(git diff --cached --name-only $AGAINST);
 TOP_LEVEL=$(git rev-parse --show-toplevel);
 
-# Ensure we have the correct file permissions
+# Standard checks against all files in commit.
 for FILE in $FILES; do
     # Ensure the file still exists (i.e. is not being deleted).
     if [ -a $FILE ] ; then
       if [ ${FILE: -3} != ".sh" ] ; then
+        # Ensure we have the correct file permissions
         STAT="$(stat -f  "%A" $FILE)"
         if [ "$STAT" -ne "644" ] ; then
             echo "git pre-commit check failed: file $FILE should be 644 not $STAT"
             STATUS=1
         fi
       fi
+    fi
+    if [[ "$FILE" =~ ^vendor/ ]]; then
+      echo "git pre-commit check failed: file in vendor directory being committed ($FILE). Copy the example.gitignore to .gitignore in Drupal root and unstage any changes in vendor."
+      STATUS=1
     fi
 done
 
