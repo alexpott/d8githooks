@@ -98,19 +98,19 @@ To manually test the standard on a particular file prior to commit:
 
    You can confirm that the check is working properly by (e.g.) adding an unused use statement to the file and ensuring it raises an error.
    
-Similarly, to use phpcbf to fix a file, run:
+   Similarly, to use phpcbf to fix a file, run:
 
-````
-vendor/bin/phpcs --standard="core/phpcs.xml.dist" core/path/to/file.php
-````
+   ````
+   vendor/bin/phpcs --standard="core/phpcs.xml.dist" core/path/to/file.php
+   ````
 
-Note that in some cases the enabled core rules are not enough to fix errors correctly! You can also check:
+   Note that in some cases the enabled core rules are not enough to fix errors correctly! You can also check:
 
-````
-vendor/bin/phpcs --standard=Drupal core/path/to/file.php
-````
+   ````
+   vendor/bin/phpcs --standard=Drupal core/path/to/file.php
+   ````
 
-Be aware, however, that this may introduce out-of-scope changes as it will run rules that core does not yet comply with.
+   Be aware, however, that this may introduce out-of-scope changes as it will run rules that core does not yet comply with.
 
 ### Troubleshooting eslint
 
