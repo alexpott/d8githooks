@@ -26,19 +26,27 @@ This project depends on:
 
 1. Clone the respository into any directory; for example your home directory: 
 
-   `cd ~; git clone https://github.com/alexpott/d8githooks.git`
+   ````
+   cd ~; git clone https://github.com/alexpott/d8githooks.git
+   ````
    
 1. Navigate to the `.git/hooks` directory inside the Drupal 8 clone from which you commit patches 
 
-   `cd ~/Sites/8.x/.git/hooks`
+   ````
+   cd ~/Sites/8.x/.git/hooks
+   ````
 
 1. Create symlinks to pre-commit and post-commit files:
    
-  `ln -sfn ~/d8githooks/pre-commit pre-commit; ln -sfn ~/d8githooks/post-commit post-commit`
+  ```
+  ln -sfn ~/d8githooks/pre-commit pre-commit; ln -sfn ~/d8githooks/post-commit post-commit
+  ````
 
 1. Mark the hooks as executable. 
 
-   `chmod u+x pre-commit; chmod u+x post-commit`
+   ````
+   chmod u+x pre-commit; chmod u+x post-commit
+   ````
 
 To test that it's working, introduce a file permissions error and then attempt to commit a text change:
 
@@ -54,8 +62,9 @@ git commit -m "Test."
 You should see the error:
 
 ````
-git pre-commit check failed: file core/core.services.yml should be 644 not 777`
+git pre-commit check failed: file core/core.services.yml should be 644 not 777
 ````
+
 ## Troubleshooting
 
 ### Using core's Coder dev dependency
@@ -77,21 +86,29 @@ To manually test the standard on a particular file prior to commit:
 1. Apply any relevant patch (including fixes, newly configured rules, etc.)
 2. From within the repository, run:
 
-   `composer install`
+   ````
+   composer install
+   ````
 
 3. From the root of the repository, run:
 
-   `vendor/bin/phpcs --standard="core/phpcs.xml.dist" core/path/to/file.php`
+   ````
+   vendor/bin/phpcs --standard="core/phpcs.xml.dist" core/path/to/file.php
+   ````
 
    You can confirm that the check is working properly by (e.g.) adding an unused use statement to the file and ensuring it raises an error.
    
 Similarly, to use phpcbf to fix a file, run:
 
-`vendor/bin/phpcs --standard="core/phpcs.xml.dist" core/path/to/file.php`
+````
+vendor/bin/phpcs --standard="core/phpcs.xml.dist" core/path/to/file.php
+````
 
 ### Troubleshooting eslint
 
-`sudo npm update -g`
+````
+sudo npm update -g
+````
 
 ## How to use
 @todo something about what standard message(s) to copy/paste.
