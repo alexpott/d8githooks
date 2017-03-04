@@ -104,6 +104,14 @@ Similarly, to use phpcbf to fix a file, run:
 vendor/bin/phpcs --standard="core/phpcs.xml.dist" core/path/to/file.php
 ````
 
+Note that in some cases the enabled core rules are not enough to fix errors correctly! You can also check:
+
+````
+vendor/bin/phpcs --standard=Drupal core/path/to/file.php
+````
+
+Be aware, however, that this may introduce out-of-scope changes as it will run rules that core does not yet comply with.
+
 ### Troubleshooting eslint
 
 ````
