@@ -46,6 +46,18 @@ You should see the error:
 ````
 git pre-commit check failed: file core/core.services.yml should be 644 not 777`
 ````
+## Troubleshooting
+
+If you previously installed PHPCS or Coder globally according to instructions on https://www.drupal.org/node/1419988 and your pre-commit hook starts failing silently, you may need to do:
+
+````
+composer global remove drupal/coder
+composer global remove phpcs
+composer install
+````
+
+This change is required because a canonical version of Coder is now added as a core dev dependency.
+
 
 ## How to use
 @todo something about what standard message(s) to copy/paste.
