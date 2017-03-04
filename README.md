@@ -14,7 +14,6 @@ This project depends on:
 1. Drupal 8
 1. [Node.js](https://nodejs.org/en/download/)
 1. [eslint](http://eslint.org/docs/user-guide/getting-started)
-    - Troubleshooting: Run `sudo npm update -g`
 1. Running composer install in the root directory of the repository you have checked out
 
 ### Optional dependencies
@@ -48,6 +47,8 @@ git pre-commit check failed: file core/core.services.yml should be 644 not 777`
 ````
 ## Troubleshooting
 
+### Using core's Coder dev dependency
+
 If you previously installed PHPCS or Coder globally according to instructions on https://www.drupal.org/node/1419988 and your pre-commit hook starts failing silently, you may need to do:
 
 ````
@@ -58,6 +59,28 @@ composer install
 
 This change is required because a canonical version of Coder is now added as a core dev dependency.
 
+### Manually checking or fixing a PHP standard
+
+To manually test the standard on a particular file prior to commit:
+
+1. Apply any relevant patch (including fixes, newly configured rules, etc.)
+2. From within the repository, run:
+
+   `composer install`
+
+3. From the root of the repository, run:
+
+   ````vendor/bin/phpcs --standard="core/phpcs.xml.dist" core/path/to/file.php````
+
+   You can confirm that the check is working properly by (e.g.) adding an unused use statement to the file and ensuring it raises an error.
+   
+Similarly, to use phpcbf to fix a file, run:
+
+````vendor/bin/phpcs --standard="core/phpcs.xml.dist" core/path/to/file.php````
+
+### Troubleshooting eslint
+
+`sudo npm update -g`
 
 ## How to use
 @todo something about what standard message(s) to copy/paste.
