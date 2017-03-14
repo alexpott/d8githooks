@@ -37,10 +37,10 @@ first_branch=`git rev-parse --abbrev-ref HEAD`
 # Commit patch to the first branch
 git commit -m "$message"
 commit_hash=`git log -n 1 --pretty=format:"%H"`
-
+short_commit_hash=`git log -n 1 --pretty=format:"%h"`
 push_message="Use the following command to push the changes: git push origin $first_branch"
 
-thanks_message="Committed and pushed <a href=\"http://cgit.drupalcode.org/drupal/commit/?id=$commit_hash\">$commit_hash</a> to $first_branch"
+thanks_message="Committed and pushed <a href=\"http://cgit.drupalcode.org/drupal/commit/?id=$short_commit_hash\">$short_commit_hash</a> to $first_branch"
 echo $TEXT | pbcopy
 
 for branch in $branches
@@ -49,7 +49,7 @@ do
   git checkout $branch
   git pull --rebase
   git cherry-pick -x $commit_hash
-  branch_hash=`git rev-parse --verify HEAD | head -c7`
+  branch_hash=`git log -n 1 --pretty=format:"%h"`
   thanks_message="$thanks_message and <a href=\"http://cgit.drupalcode.org/drupal/commit/?id=$branch_hash\">$branch_hash</a> to $branch"
   push_message="$push_message && git push origin $branch"
 done

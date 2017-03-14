@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # An example hook script to verify what is about to be committed.
 # Called by "git commit" with no arguments.  The hook should
@@ -23,32 +23,40 @@ command_exists () {
 FILES=$(git diff --cached --name-only $AGAINST);
 TOP_LEVEL=$(git rev-parse --show-toplevel);
 
-# Ensure we have the correct file permissions
+# Standard checks against all files in commit.
 for FILE in $FILES; do
     # Ensure the file still exists (i.e. is not being deleted).
     if [ -a $FILE ] ; then
       if [ ${FILE: -3} != ".sh" ] ; then
-        STAT="$(stat -f  "%A" $FILE)"
+        # Ensure we have the correct file permissions
+        STAT="$(stat -f  "%A" $FILE 2>/dev/null)"
+        if [ $? -ne 0 ]; then
+          STAT="$(stat -c  "%a" $FILE 2>/dev/null)"
+        fi
         if [ "$STAT" -ne "644" ] ; then
             echo "git pre-commit check failed: file $FILE should be 644 not $STAT"
             STATUS=1
         fi
       fi
     fi
+    if [[ "$FILE" =~ ^vendor/ ]]; then
+      echo "git pre-commit check failed: file in vendor directory being committed ($FILE). Copy the example.gitignore to .gitignore in Drupal root and unstage any changes in vendor."
+      STATUS=1
+    fi
 done
 
 # Test files with phpcs rules... needs PHPCS 2.5.0
-if command_exists phpcs ; then
+if command_exists vendor/bin/phpcs ; then
  #   cd "$TOP_LEVEL/core"
     for FILE in $FILES; do
         if [[ -f "$TOP_LEVEL/$FILE" ]] && [[ $FILE =~ \.(inc|install|module|php|profile|test|theme)$ ]]; then
-            phpcs "$TOP_LEVEL/$FILE" --standard="$TOP_LEVEL/core/phpcs.xml.dist"
+            vendor/bin/phpcs "$TOP_LEVEL/$FILE" --standard="$TOP_LEVEL/core/phpcs.xml.dist"
             PHPCS=$?
             if [ "$PHPCS" -ne "0" ] ; then
                 # If there are failures set the status to a number other than 0.
                 STATUS=1
             else
-                echo "PHPCS: $FILE \033[42;30mpassed\033[0m"
+                echo -e "PHPCS: $FILE \033[42;30mpassed\033[0m"
             fi
 
         fi
@@ -56,7 +64,7 @@ if command_exists phpcs ; then
 
     cd $TOP_LEVEL
 else
-  echo "phpcs not installed, for instructions https://www.drupal.org/node/1419988\n"
+  echo "phpcs not installed, run \"composer install\" in the Drupal root directory"
   exit 1
 fi
 
@@ -73,12 +81,12 @@ if command_exists eslint ; then
             if [ "$ESLINT" -ne "0" ] ; then
                 STATUS=1
             else
-                echo "ESLINT: $FILE \033[42;30mpassed\033[0m"
+                echo -e "ESLINT: $FILE \033[42;30mpassed\033[0m"
             fi
         fi
     done
 else
-  echo "eslint not installed, for instructions visit https://github.com/eslint/eslint\n"
+  echo "eslint not installed, for instructions visit https://github.com/eslint/eslint"
   exit 1
 fi
 
