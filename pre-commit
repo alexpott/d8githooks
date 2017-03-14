@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # An example hook script to verify what is about to be committed.
 # Called by "git commit" with no arguments.  The hook should
@@ -29,7 +29,10 @@ for FILE in $FILES; do
     if [ -a $FILE ] ; then
       if [ ${FILE: -3} != ".sh" ] ; then
         # Ensure we have the correct file permissions
-        STAT="$(stat -f  "%A" $FILE)"
+        STAT="$(stat -f  "%A" $FILE 2>/dev/null)"
+        if [ $? -ne 0 ]; then
+          STAT="$(stat -c  "%a" $FILE 2>/dev/null)"
+        fi
         if [ "$STAT" -ne "644" ] ; then
             echo "git pre-commit check failed: file $FILE should be 644 not $STAT"
             STATUS=1
@@ -53,7 +56,7 @@ if command_exists vendor/bin/phpcs ; then
                 # If there are failures set the status to a number other than 0.
                 STATUS=1
             else
-                echo "PHPCS: $FILE \033[42;30mpassed\033[0m"
+                echo -e "PHPCS: $FILE \033[42;30mpassed\033[0m"
             fi
 
         fi
@@ -77,7 +80,7 @@ if command_exists eslint ; then
             if [ "$ESLINT" -ne "0" ] ; then
                 STATUS=1
             else
-                echo "ESLINT: $FILE \033[42;30mpassed\033[0m"
+                echo -e "ESLINT: $FILE \033[42;30mpassed\033[0m"
             fi
         fi
     done
