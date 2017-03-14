@@ -65,6 +65,7 @@ if command_exists vendor/bin/phpcs ; then
     cd $TOP_LEVEL
 else
   echo "phpcs not installed, run \"composer install\" in the Drupal root directory"
+  exit 1
 fi
 
 # Ensure we pass the eslint test
@@ -86,6 +87,7 @@ if command_exists eslint ; then
     done
 else
   echo "eslint not installed, for instructions visit https://github.com/eslint/eslint"
+  exit 1
 fi
 
 # Run PHPUnit tests
