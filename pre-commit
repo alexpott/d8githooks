@@ -82,17 +82,18 @@ for FILE in $FILES; do
 done
 
 for FILE in $FILES; do
-    # If the file is a JS the return will be 0 if not 1
-    echo "$FILE" | grep -q "\.js$"
-    ISJS=$?
-    if [ -a $FILE -a "$ISJS" == "0" ] ; then
-        core/node_modules/.bin/eslint $FILE
+    # If the file is an ES6  JS the return will be 0 if not 1. We only lint the
+    # es6 files because other JS is generated.
+    echo "$FILE" | grep -q "\.es6\.js$"
+    IS_ES6JS=$?
+    if [ -f "$TOP_LEVEL/$FILE" -a "$IS_ES6JS" == "0" ] ; then
+        core/node_modules/.bin/eslint "$TOP_LEVEL/$FILE" --config core/.eslintrc.json --ignore-path core/.eslintignore
         ESLINT=$?
         if [ "$ESLINT" -ne "0" ] ; then
             # If there are failures set the status to a number other than 0.
             STATUS=1
         else
-            echo -e "ESLINT: $FILE \033[42;30mpassed\033[0m"
+            echo "ESLINT: $FILE \033[42;30mpassed\033[0m"
         fi
     fi
 done

@@ -19,9 +19,9 @@ fi
 # Need to build and commit the JS
 FILES=`git diff-tree --no-commit-id --name-only -r ${REV}`
 HAS_ES6_JS=0
-echo ${FILES};
+
 for FILE in $FILES; do
-    echo "$FILE" | grep -q "\es6.js$"
+    echo "$FILE" | grep -q "\.es6\.js$"
     TEST=$?
     if [ -a $FILE -a "$TEST" == "0" ] ; then
         HAS_ES6_JS=1
