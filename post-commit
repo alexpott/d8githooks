@@ -18,18 +18,18 @@ fi
 
 # Need to build and commit the JS
 FILES=`git diff-tree --no-commit-id --name-only -r ${REV}`
-HAS_JS=0
+HAS_ES6_JS=0
 echo ${FILES};
 for FILE in $FILES; do
-    echo "$FILE" | grep -q "\.js$"
+    echo "$FILE" | grep -q "\es6.js$"
     TEST=$?
     if [ -a $FILE -a "$TEST" == "0" ] ; then
-        HAS_JS=1
+        HAS_ES6_JS=1
         break
     fi
 done
 
-if [ $HAS_JS == 1 ] ; then
+if [ $HAS_ES6_JS == 1 ] ; then
   TOP_LEVEL=$(git rev-parse --show-toplevel);
   cd "$TOP_LEVEL/core"
   yarn run build:js
