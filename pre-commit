@@ -13,15 +13,30 @@ else
     AGAINST=4b825dc642cb6eb9a060e54bf8d69288fbee4904
 fi
 
-# Work out what we can do
-
+# Function to test for command dependencies.
 command_exists () {
     type "$1" &> /dev/null ;
 }
 
+# Ensure we have all the external tools we need
+if ! command_exists yarn ; then
+  echo "yarn not installed, for instructions visit https://yarnpkg.com/lang/en/docs/install"
+  exit 1
+fi
+if ! command_exists composer ; then
+  echo "composer not installed, for instructions visit https://getcomposer.org/"
+  exit 1
+fi
 
 FILES=$(git diff --cached --name-only $AGAINST);
 TOP_LEVEL=$(git rev-parse --show-toplevel);
+
+# Ensure we have the correct versions of all the things.
+cd $TOP_LEVEL
+composer install
+cd "$TOP_LEVEL/core"
+yarn install
+cd $TOP_LEVEL
 
 # Standard checks against all files in commit.
 for FILE in $FILES; do
@@ -39,80 +54,47 @@ for FILE in $FILES; do
         fi
       fi
     fi
+    # Don't commit changes to vendor.
     if [[ "$FILE" =~ ^vendor/ ]]; then
       echo "git pre-commit check failed: file in vendor directory being committed ($FILE). Copy the example.gitignore to .gitignore in Drupal root and unstage any changes in vendor."
       STATUS=1
     fi
+    # Don't commit changes to core/node_modules.
+    if [[ "$FILE" =~ ^core/node_modules/ ]]; then
+      echo "git pre-commit check failed: file in core/node_modules directory being committed ($FILE)"
+      STATUS=1
+    fi
 done
 
-# Test files with phpcs rules... needs PHPCS 2.5.0
-if command_exists vendor/bin/phpcs ; then
- #   cd "$TOP_LEVEL/core"
-    for FILE in $FILES; do
-        if [[ -f "$TOP_LEVEL/$FILE" ]] && [[ $FILE =~ \.(inc|install|module|php|profile|test|theme)$ ]]; then
-            vendor/bin/phpcs "$TOP_LEVEL/$FILE" --standard="$TOP_LEVEL/core/phpcs.xml.dist"
-            PHPCS=$?
-            if [ "$PHPCS" -ne "0" ] ; then
-                # If there are failures set the status to a number other than 0.
-                STATUS=1
-            else
-                echo -e "PHPCS: $FILE \033[42;30mpassed\033[0m"
-            fi
-
+# Test files with phpcs rules.
+for FILE in $FILES; do
+    if [[ -f "$TOP_LEVEL/$FILE" ]] && [[ $FILE =~ \.(inc|install|module|php|profile|test|theme)$ ]]; then
+        vendor/bin/phpcs "$TOP_LEVEL/$FILE" --standard="$TOP_LEVEL/core/phpcs.xml.dist"
+        PHPCS=$?
+        if [ "$PHPCS" -ne "0" ] ; then
+            # If there are failures set the status to a number other than 0.
+            STATUS=1
+        else
+            echo -e "PHPCS: $FILE \033[42;30mpassed\033[0m"
         fi
-    done
 
-    cd $TOP_LEVEL
-else
-  echo "phpcs not installed, run \"composer install\" in the Drupal root directory"
-  exit 1
-fi
-
-# Ensure we pass the eslint test
-if command_exists eslint ; then
-    CHECK_ESLINT=0
-    for FILE in $FILES; do
-        # If the file is a JS the return will be 0 if not 1
-        echo "$FILE" | grep -q "\.js$"
-        ISJS=$?
-        if [ -a $FILE -a "$ISJS" == "0" ] ; then
-            eslint $FILE
-            ESLINT=$?
-            if [ "$ESLINT" -ne "0" ] ; then
-                STATUS=1
-            else
-                echo -e "ESLINT: $FILE \033[42;30mpassed\033[0m"
-            fi
-        fi
-    done
-else
-  echo "eslint not installed, for instructions visit https://github.com/eslint/eslint"
-  exit 1
-fi
-
-# Run PHPUnit tests
-# In order to run them we have to set the working directory to the top level
-# directory/core. Unfortunately add the configuration file as an
-# argument does work.
-
-# Find out if we need to run phpunit
-CHECK_PHPUNIT=0
-# PHPUnit testing is expensive - disabled for the time being.
-#for FILE in $FILES; do
-#    if echo "$FILE" | grep -E -q "\.(php|module|inc|engine|install|profile|theme)$" ; then
-#        CHECK_PHPUNIT=1
-#    fi
-#done
-
-if [ "$CHECK_PHPUNIT" == "1" ] ; then
-    cd "$TOP_LEVEL/core"
-    php ../vendor/phpunit/phpunit/phpunit --testsuite unit
-    PHPUNIT=$?
-    if [ "$PHPUNIT" -ne "0" ] ; then
-        # If there are failures set the status to a number other than 0.
-        # PHPUnit will handle the output.
-        STATUS=1
     fi
-    cd $TOP_LEVEL
-fi
+done
+
+for FILE in $FILES; do
+    # If the file is a JS the return will be 0 if not 1
+    echo "$FILE" | grep -q "\.js$"
+    ISJS=$?
+    if [ -a $FILE -a "$ISJS" == "0" ] ; then
+        core/node_modules/.bin/eslint $FILE
+        ESLINT=$?
+        if [ "$ESLINT" -ne "0" ] ; then
+            # If there are failures set the status to a number other than 0.
+            STATUS=1
+        else
+            echo -e "ESLINT: $FILE \033[42;30mpassed\033[0m"
+        fi
+    fi
+done
+
 exit $STATUS

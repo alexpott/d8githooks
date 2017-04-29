@@ -15,3 +15,24 @@ if command_exists cowsay ; then
 else
   echo "$TEXT\n"
 fi
+
+# Need to build and commit the JS
+FILES=`git diff-tree --no-commit-id --name-only -r ${REV}`
+HAS_JS=0
+echo ${FILES};
+for FILE in $FILES; do
+    echo "$FILE" | grep -q "\.js$"
+    TEST=$?
+    if [ -a $FILE -a "$TEST" == "0" ] ; then
+        HAS_JS=1
+        break
+    fi
+done
+
+if [ $HAS_JS == 1 ] ; then
+  TOP_LEVEL=$(git rev-parse --show-toplevel);
+  cd "$TOP_LEVEL/core"
+  yarn run build:js
+  # todo add build files and commit them.
+  cd "$TOP_LEVEL"
+fi
