@@ -13,7 +13,7 @@ if command_exists cowsay ; then
   # Bug in cowsay's text wrapping :(
   cowsay -W 200 $TEXT
 else
-  echo "$TEXT\n"
+  printf "$TEXT\n"
 fi
-echo "\n*** Does it need a change record? ***\n"
-echo "\n*** Should it be in the release notes? ***\n"
+printf "\n*** Does it need a change record? ***\n"
+printf "*** Should it be in the release notes? ***\n"
