@@ -15,3 +15,5 @@ if command_exists cowsay ; then
 else
   echo "$TEXT\n"
 fi
+echo "\n*** Does it need a change record? ***\n"
+echo "\n*** Should it be in the release notes? ***\n"
