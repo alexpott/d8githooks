@@ -45,6 +45,19 @@ for FILE in $FILES; do
     fi
 done
 
+# Tests that changed .js files have affiliated .es6.js file changes
+JSFILES=`git diff --staged --name-only|grep \.js|grep -v \.es6\.js`
+ES6FILES=`git diff --staged --name-only|grep \.es6\.js`
+
+for JSFILE in $JSFILES; do
+    BASENAME=${JSFILE%.js}
+    if [[ " ${ES6FILES[*]} " =~ " ${BASENAME}.es6.js " ]]
+     then
+      echo "${JSFILE} seems not to have an affiliated es6.js counterpart staged"
+      exit 1
+    fi
+done
+
 # Test files with phpcs rules... needs PHPCS 2.5.0
 if command_exists vendor/bin/phpcs ; then
  #   cd "$TOP_LEVEL/core"
