@@ -113,7 +113,7 @@ for FILE in $FILES; do
           else
             # If there is no .es6.js file then there should be unless the .js is
             # not really Drupal's.
-            if ! [[ "$FILE" =~ ^core/assets/vendor ]] ; then
+            if ! [[ "$FILE" =~ ^core/assets/vendor ]] && ! [[ "$FILE" =~ ^core/scripts/js ]]; then
               echo -e "${red}FAILURE${reset} $FILE does not have a corresponding $BASENAME.es6.js"
               STATUS=1
             fi
