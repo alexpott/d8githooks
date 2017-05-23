@@ -91,39 +91,33 @@ for FILE in $FILES; do
     ### JAVASCRIPT FILES
     ############################################################################
     if [[ -f "$TOP_LEVEL/$FILE" ]] && [[ $FILE =~ \.js$ ]] ; then
+        # Work out the root name of the Javascript so we can ensure that the ES6
+        # version has been compiled correctly.
         if [[ $FILE =~ \.es6\.js$ ]] ; then
           BASENAME=${FILE%.es6.js}
-          # We must have a change to the corresponding .js file.
-          contains_element "$BASENAME.js" "${FILES[@]}"
-          HASJS=$?
-          if [ "$HASJS" -ne "0" ] ; then
-            echo -e "${red}FAILURE${reset} $FILE has changed but $BASENAME.js has not"
-            STATUS=1
-          fi
         else
           BASENAME=${FILE%.js}
-          if [[ -f "$TOP_LEVEL/$BASENAME.es6.js" ]] ; then
-            # If a corresponding .es6.js file exists then it has to be changed.
-            contains_element "$BASENAME.es6.js" "${FILES[@]}"
-            HASES6=$?
-            if [ "$HASES6" -ne "0" ] ; then
-              echo -e "${red}FAILURE${reset} $FILE has changed but $BASENAME.es6.js has not"
-              STATUS=1
-            fi
-          else
-            # If there is no .es6.js file then there should be unless the .js is
-            # not really Drupal's.
-            if ! [[ "$FILE" =~ ^core/assets/vendor ]] && ! [[ "$FILE" =~ ^core/scripts/js ]]; then
-              echo -e "${red}FAILURE${reset} $FILE does not have a corresponding $BASENAME.es6.js"
-              STATUS=1
-            fi
+        fi
+        if [[ -f "$TOP_LEVEL/$BASENAME.es6.js" ]] ; then
+          cd "$TOP_LEVEL/core"
+          yarn run build:js -- --check --file "$TOP_LEVEL/$BASENAME.es6.js"
+          CORRECTJS=$?
+          cd $TOP_LEVEL
+          if [ "$CORRECTJS" -ne "0" ] ; then
+            # No need to write any output the yarn run command will do this for
+            # us.
+            STATUS=1
+          fi
+          # @todo Files don't comply with the linting rules yet. We need to
+          # actually convert them to es6 proper.
+        else
+          # If there is no .es6.js file then there should be unless the .js is
+          # not really Drupal's.
+          if ! [[ "$FILE" =~ ^core/assets/vendor ]] && ! [[ "$FILE" =~ ^core/scripts/js ]]; then
+            echo -e "${red}FAILURE${reset} $FILE does not have a corresponding $BASENAME.es6.js"
+            STATUS=1
           fi
         fi
-        # @todo Check that the corresponding .js file has been updated
-        # correctly. We need https://www.drupal.org/node/2880013 for this.
-
-        # @todo Files dn't comply with the linting rules yet. We need to actually convert them
-        # to es6 proper.
     fi
 done
 
