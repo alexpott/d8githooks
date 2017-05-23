@@ -95,10 +95,21 @@ for FILE in $FILES; do
         # version has been compiled correctly.
         if [[ $FILE =~ \.es6\.js$ ]] ; then
           BASENAME=${FILE%.es6.js}
+          COMPILE_CHECK=1
         else
           BASENAME=${FILE%.js}
+          # We only need to compile check if the .es6.js file is not also
+          # changing. This is because the compile check will occur for the
+          # .es6.js file. This might occur if the compile scripts have changed.
+          contains_element "$BASENAME.es6.js" "${FILES[@]}"
+          HASES6=$?
+          if [ "$HASES6" -ne "0" ] ; then
+            COMPILE_CHECK=1
+          else
+            COMPILE_CHECK=0
+          fi
         fi
-        if [[ -f "$TOP_LEVEL/$BASENAME.es6.js" ]] ; then
+        if [[ "$COMPILE_CHECK" == "1" ]] && [[ -f "$TOP_LEVEL/$BASENAME.es6.js" ]] ; then
           cd "$TOP_LEVEL/core"
           yarn run build:js -- --check --file "$TOP_LEVEL/$BASENAME.es6.js"
           CORRECTJS=$?
