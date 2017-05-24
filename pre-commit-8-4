@@ -138,7 +138,9 @@ for FILE in $FILES; do
       core/node_modules/.bin/stylelint "$FILE"
       if [ "$?" -ne "0" ] ; then
         STATUS=1
-      fi
+        else
+            echo -e "STYLELINT: $FILE ${green}passed${reset}"
+        fi
     fi
 
 done
