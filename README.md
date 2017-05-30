@@ -14,11 +14,12 @@ This project depends on:
 1. Drupal 8
 1. [Node.js](https://nodejs.org/en/download/)
 1. [eslint](http://eslint.org/docs/user-guide/getting-started)
+1. [yarn](https://yarnpkg.com/en/)
 1. Running composer install in the root directory of the repository you have checked out
 
 ### Optional dependencies
-1. [Homebrew](http://brew.sh/)
-1. pbcopy & pbpaste (yep because I use OS X)
+1. [Homebrew](http://brew.sh/) (You can use homebrew to install many of the dependencies above.)
+1. pbcopy & pbpaste
 1. cowsay (```brew install cowsay```)
 
 
