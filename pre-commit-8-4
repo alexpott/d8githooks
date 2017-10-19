@@ -113,14 +113,19 @@ for FILE in $FILES; do
           cd "$TOP_LEVEL/core"
           yarn run build:js -- --check --file "$TOP_LEVEL/$BASENAME.es6.js"
           CORRECTJS=$?
-          cd $TOP_LEVEL
           if [ "$CORRECTJS" -ne "0" ] ; then
             # No need to write any output the yarn run command will do this for
             # us.
             STATUS=1
           fi
-          # @todo Files don't comply with the linting rules yet. We need to
-          # actually convert them to es6 proper.
+          # Check the coding standards.
+          node ./node_modules/eslint/bin/eslint.js --quiet --config=.eslintrc.passing.json "$TOP_LEVEL/$BASENAME.es6.js"
+          CORRECTJS=$?
+          if [ "$CORRECTJS" -ne "0" ] ; then
+            # No need to write any output the node command will do this for us.
+            STATUS=1
+          fi
+          cd $TOP_LEVEL
         else
           # If there is no .es6.js file then there should be unless the .js is
           # not really Drupal's.
