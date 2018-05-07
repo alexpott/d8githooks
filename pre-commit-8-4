@@ -90,7 +90,7 @@ for FILE in $FILES; do
     ############################################################################
     ### JAVASCRIPT FILES
     ############################################################################
-    if [[ -f "$TOP_LEVEL/$FILE" ]] && [[ $FILE =~ \.js$ ]] ; then
+    if [[ -f "$TOP_LEVEL/$FILE" ]] && [[ $FILE =~ \.js$ ]] && [[ ! $FILE =~ ^core/tests/Drupal/Nightwatch ]] ; then
         # Work out the root name of the Javascript so we can ensure that the ES6
         # version has been compiled correctly.
         if [[ $FILE =~ \.es6\.js$ ]] ; then
@@ -136,6 +136,21 @@ for FILE in $FILES; do
             STATUS=1
           fi
         fi
+    else
+      # Check coding standards of Nightwatch files.
+      if [[ -f "$TOP_LEVEL/$FILE" ]] && [[ $FILE =~ \.js$ ]]; then
+        cd "$TOP_LEVEL/core"
+        # Check the coding standards.
+        if [[ -f ".eslintrc.passing.json" ]]; then
+          node ./node_modules/eslint/bin/eslint.js --quiet --config=.eslintrc.passing.json "$TOP_LEVEL/$FILE"
+          CORRECTJS=$?
+          if [ "$CORRECTJS" -ne "0" ] ; then
+            # No need to write any output the node command will do this for us.
+            STATUS=1
+          fi
+        fi
+        cd $TOP_LEVEL
+      fi
     fi
 
     ############################################################################
