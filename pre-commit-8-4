@@ -72,9 +72,9 @@ for FILE in $FILES; do
     fi
 
     ############################################################################
-    ### PHP FILES
+    ### PHP AND YAML FILES
     ############################################################################
-    if [[ -f "$TOP_LEVEL/$FILE" ]] && [[ $FILE =~ \.(inc|install|module|php|profile|test|theme)$ ]]; then
+    if [[ -f "$TOP_LEVEL/$FILE" ]] && [[ $FILE =~ \.(inc|install|module|php|profile|test|theme|yml)$ ]]; then
         # Test files with phpcs rules.
         vendor/bin/phpcs "$TOP_LEVEL/$FILE" --runtime-set installed_paths "$TOP_LEVEL/vendor/drupal/coder/coder_sniffer" --standard="$TOP_LEVEL/core/phpcs.xml.dist"
         PHPCS=$?
