@@ -12,6 +12,12 @@
 # Example command (whilst on 8.1.x): git d8ci 8.0.x 'Issue #2608072 by ameymudras: "Object of type "@class" cannot be printed." exception message should not be translated'
 # Example command (whilst on 8.2.x): git d8ci 8.1.x,8.0.x 'Issue #2608072 by ameymudras: "Object of type "@class" cannot be printed." exception message should not be translated'
 
+# Ensure there is something to commit.
+git diff --quiet --exit-code --cached
+CHANGES=$?
+if [[ "$CHANGES" == "0" ]] ; then
+  echo "There's nothing to commit" 1>&2 && exit 1
+fi
 
 # Ensure we exit as soon as there is an error
 set -e
