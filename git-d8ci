@@ -60,7 +60,11 @@ do
   git cherry-pick -x $commit_hash
   branch_hash=`git log -n 1 --pretty=format:"%h"`
   thanks_message="$thanks_message and <a href=\"http://cgit.drupalcode.org/drupal/commit/?id=$branch_hash\">$branch_hash</a> to $branch"
-  push_message="$push_message && git push origin $branch"
+  if [[ "$SHELL" =~ fish$ ]] ; then
+    push_message="$push_message; and git push origin $branch"
+  else
+    push_message="$push_message && git push origin $branch"
+  fi
 done
 
 git checkout $first_branch
