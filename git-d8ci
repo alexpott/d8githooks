@@ -49,7 +49,7 @@ commit_hash=`git log -n 1 --pretty=format:"%H"`
 short_commit_hash=`git log -n 1 --pretty=format:"%h"`
 push_message="Use the following command to push the changes: git push origin $first_branch"
 
-thanks_message="Committed and pushed <a href=\"http://cgit.drupalcode.org/drupal/commit/?id=$short_commit_hash\">$short_commit_hash</a> to $first_branch"
+thanks_message="Committed and pushed <a href=\"https://git.drupalcode.org/project/drupal/commit/$short_commit_hash\">$short_commit_hash</a> to $first_branch"
 echo $TEXT | pbcopy
 
 for branch in $branches
@@ -59,7 +59,7 @@ do
   git pull --rebase
   git cherry-pick -x $commit_hash
   branch_hash=`git log -n 1 --pretty=format:"%h"`
-  thanks_message="$thanks_message and <a href=\"http://cgit.drupalcode.org/drupal/commit/?id=$branch_hash\">$branch_hash</a> to $branch"
+  thanks_message="$thanks_message and <a href=\"https://git.drupalcode.org/project/drupal/commit/$branch_hash\">$branch_hash</a> to $branch"
   if [[ "$SHELL" =~ fish$ ]] ; then
     push_message="$push_message; and git push origin $branch"
   else
