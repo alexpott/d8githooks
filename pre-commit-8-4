@@ -189,7 +189,7 @@ for FILE in $FILES; do
       # PostCSS
       if [[ "$COMPILE_CHECK" == "1" ]] && [[ -f "$TOP_LEVEL/$BASENAME.pcss.css" ]] ; then
         cd "$TOP_LEVEL/core"
-        yarn run build:css -- --check --file "$TOP_LEVEL/$BASENAME.pcss.css"
+        yarn run build:css --check --file "$TOP_LEVEL/$BASENAME.pcss.css"
         CORRECTCSS=$?
         if [ "$CORRECTCSS" -ne "0" ] ; then
           # No need to write any output the yarn run command will do this for
