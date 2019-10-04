@@ -167,38 +167,38 @@ for FILE in $FILES; do
     ### CSS FILES
     ############################################################################
     if [[ -f "$TOP_LEVEL/$FILE" ]] && [[ $FILE =~ \.css$ ]] ; then
-     # Work out the root name of the CSS so we can ensure that the PostCSS
-     # version has been compiled correctly.
-     if [[ $FILE =~ \.pcss\.css$ ]] ; then
-       BASENAME=${FILE%.pcss.css}
-       COMPILE_CHECK=1
-     else
-       BASENAME=${FILE%.css}
-       # We only need to compile check if the .pcss.css file is not also
-       # changing. This is because the compile check will occur for the
-       # .pcss.css file. This might occur if the compiled stylesheets have
-       # changed.
-       contains_element "$BASENAME.pcss.css" "${FILES[@]}"
-       HASPOSTCSS=$?
-       if [ "$HASPOSTCSS" -ne "0" ] ; then
-         COMPILE_CHECK=1
-       else
-         COMPILE_CHECK=0
-       fi
-     fi
-     # PostCSS
-     if [[ "$COMPILE_CHECK" == "1" ]] && [[ -f "$TOP_LEVEL/$BASENAME.pcss.css" ]] ; then
-       cd "$TOP_LEVEL/core"
-       yarn run build:css -- --check --file "$TOP_LEVEL/$BASENAME.pcss.css"
-       CORRECTCSS=$?
-       if [ "$CORRECTCSS" -ne "0" ] ; then
-         # No need to write any output the yarn run command will do this for
-         # us.
-         STATUS=1
-       fi
-       cd $TOP_LEVEL
-     fi
-   fi
+      # Work out the root name of the CSS so we can ensure that the PostCSS
+      # version has been compiled correctly.
+      if [[ $FILE =~ \.pcss\.css$ ]] ; then
+        BASENAME=${FILE%.pcss.css}
+        COMPILE_CHECK=1
+      else
+        BASENAME=${FILE%.css}
+        # We only need to compile check if the .pcss.css file is not also
+        # changing. This is because the compile check will occur for the
+        # .pcss.css file. This might occur if the compiled stylesheets have
+        # changed.
+        contains_element "$BASENAME.pcss.css" "${FILES[@]}"
+        HASPOSTCSS=$?
+        if [ "$HASPOSTCSS" -ne "0" ] ; then
+          COMPILE_CHECK=1
+        else
+          COMPILE_CHECK=0
+        fi
+      fi
+      # PostCSS
+      if [[ "$COMPILE_CHECK" == "1" ]] && [[ -f "$TOP_LEVEL/$BASENAME.pcss.css" ]] ; then
+        cd "$TOP_LEVEL/core"
+        yarn run build:css -- --check --file "$TOP_LEVEL/$BASENAME.pcss.css"
+        CORRECTCSS=$?
+        if [ "$CORRECTCSS" -ne "0" ] ; then
+          # No need to write any output the yarn run command will do this for
+          # us.
+          STATUS=1
+        fi
+        cd $TOP_LEVEL
+      fi
+    fi
     if [[ -f "$TOP_LEVEL/$FILE" ]] && [[ $FILE =~ \.css$ ]] && [[ -f "core/node_modules/.bin/stylelint" ]] ; then
       core/node_modules/.bin/stylelint "$FILE"
       if [ "$?" -ne "0" ] ; then
