@@ -111,7 +111,7 @@ for FILE in $FILES; do
         fi
         if [[ "$COMPILE_CHECK" == "1" ]] && [[ -f "$TOP_LEVEL/$BASENAME.es6.js" ]] ; then
           cd "$TOP_LEVEL/core"
-          yarn run build:js -- --check --file "$TOP_LEVEL/$BASENAME.es6.js"
+          yarn run build:js --check --file "$TOP_LEVEL/$BASENAME.es6.js"
           CORRECTJS=$?
           if [ "$CORRECTJS" -ne "0" ] ; then
             # No need to write any output the yarn run command will do this for
