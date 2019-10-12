@@ -197,15 +197,16 @@ for FILE in $FILES; do
           STATUS=1
         fi
         cd $TOP_LEVEL
-      fi
-    fi
-    if [[ -f "$TOP_LEVEL/$FILE" ]] && [[ $FILE =~ \.css$ ]] && [[ -f "core/node_modules/.bin/stylelint" ]] ; then
-      core/node_modules/.bin/stylelint "$FILE"
-      if [ "$?" -ne "0" ] ; then
-        STATUS=1
-        else
+      else
+        if [[ -f "$TOP_LEVEL/$FILE" ]] && [[ $FILE =~ \.css$ ]] && [[ -f "core/node_modules/.bin/stylelint" ]] ; then
+          core/node_modules/.bin/stylelint "$FILE"
+          if [ "$?" -ne "0" ] ; then
+            STATUS=1
+          else
             echo -e "STYLELINT: $FILE ${green}passed${reset}"
+          fi
         fi
+      fi
     fi
 
 done
