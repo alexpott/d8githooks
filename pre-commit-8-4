@@ -32,16 +32,6 @@ if ! command_exists composer ; then
   exit 1
 fi
 
-# Only test the prospective commit: ignore unstaged changes by stashing them.
-OLD_STASH_SHA=$(git rev-parse -q --verify refs/stash)
-git stash push -q --keep-index
-NEW_STASH_SHA=$(git rev-parse -q --verify refs/stash)
-if [ "$OLD_STASH_SHA" = "$NEW_STASH_SHA" ]; then
-  STASHED=false
-else
-  STASHED=true
-fi
-
 FILES=$(git diff --cached --name-only $AGAINST);
 TOP_LEVEL=$(git rev-parse --show-toplevel);
 
@@ -209,9 +199,5 @@ for FILE in $FILES; do
     fi
 
 done
-
-if $STASHED; then
-  git stash pop -q;
-fi
 
 exit $STATUS
