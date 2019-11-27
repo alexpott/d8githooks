@@ -161,6 +161,7 @@ for FILE in $FILES; do
           # The yarn run command will write any error output.
           STATUS=1
         fi
+        cd $TOP_LEVEL
       else
         # If there is no .js source file
         if ! [[ -f "$TOP_LEVEL/$BASENAME.js" ]]; then
