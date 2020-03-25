@@ -223,14 +223,19 @@ for FILE in $FILES; do
       fi
     fi
     if [[ -f "$TOP_LEVEL/$FILE" ]] && [[ $FILE =~ \.css$ ]] && [[ -f "core/node_modules/.bin/stylelint" ]] ; then
-      cd "$TOP_LEVEL/core"
-      node_modules/.bin/stylelint "$TOP_LEVEL/$FILE"
-      if [ "$?" -ne "0" ] ; then
-        STATUS=1
-      else
-        echo -e "STYLELINT: $FILE ${green}passed${reset}"
+      BASENAME=${FILE%.css}
+      # We only need to use stylelint on the .pcss.css file. So if this css file
+      # has a corresponding .pcss don't do styleint.
+      if [[ $FILE =~ \.pcss\.css$ ]] || [[ ! -f "$TOP_LEVEL/$BASENAME.pcss.css" ]] ; then
+        cd "$TOP_LEVEL/core"
+        node_modules/.bin/stylelint "$TOP_LEVEL/$FILE"
+        if [ "$?" -ne "0" ] ; then
+          STATUS=1
+        else
+          echo -e "STYLELINT: $FILE ${green}passed${reset}"
+        fi
+        cd $TOP_LEVEL
       fi
-      cd $TOP_LEVEL
     fi
 
 done
