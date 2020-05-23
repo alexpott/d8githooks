@@ -37,10 +37,12 @@ This project depends on:
    cd ~/Sites/8.x/.git/hooks
    ````
 
-1. Create symlinks to pre-commit and post-commit files:
+1. Create symlinks to pre-commit, post-commit and (optionally) .cspell.json files:
    
   ```
-  ln -sfn ~/d8githooks/pre-commit pre-commit; ln -sfn ~/d8githooks/post-commit post-commit
+  ln -sfn ~/d8githooks/pre-commit pre-commit;
+  ln -sfn ~/d8githooks/post-commit post-commit;
+  ln -sfn ~/d8githooks/.cspell.json .cspell.json;
   ````
 
 1. Mark the hooks as executable. 

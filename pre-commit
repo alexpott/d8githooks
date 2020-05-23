@@ -7,6 +7,8 @@ else
     AGAINST=4b825dc642cb6eb9a060e54bf8d69288fbee4904
 fi
 
+BRANCH=`git rev-parse --abbrev-ref HEAD`
+
 # Function to test for command dependencies.
 command_exists () {
     type "$1" &> /dev/null ;
@@ -57,6 +59,27 @@ for FILE in $FILES; do
         if [ "$STAT" -ne "644" ] ; then
             echo "git pre-commit check failed: file $FILE should be 644 not $STAT"
             STATUS=1
+        fi
+      fi
+      # If we're on atleast 9.1.x and there is a cspell command available.
+      # @todo use yarn command once available.
+      if command_exists cspell && [[ 0 -eq $(git merge-base --is-ancestor c0204735a8 $BRANCH) ]]; then
+        CSPELL_CONFIG="$TOP_LEVEL/core/.cspell.json"
+        if ! [[ -f "$CSPELL_CONFIG" ]] ; then
+          # If Drupal is not shipping with a .cspell.json configuration check
+          # the .git/hooks directory.
+          SCRIPT_DIRECTORY="$(dirname "$0")"
+          CSPELL_CONFIG="$SCRIPT_DIRECTORY/.cspell.json"
+        fi
+        if [[ -f "$CSPELL_CONFIG" ]] ; then
+          echo -e "CSPELL: using configuration $CSPELL_CONFIG"
+          cspell -c $CSPELL_CONFIG --no-summary "$TOP_LEVEL/$FILE"
+          if [ "$?" -ne "0" ] ; then
+              # If there are failures set the status to a number other than 0.
+              STATUS=1
+          else
+              echo -e "CSPELL: $FILE ${green}passed${reset}"
+          fi
         fi
       fi
     fi
