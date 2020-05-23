@@ -69,7 +69,7 @@ for FILE in $FILES; do
             STATUS=1
         fi
       fi
-      if [[ 0 -eq "$DO_SPELL" ]] && [[ 0 -eq "$BRANCH_CHECK_9_1" ]]; then
+      if [[ 0 -eq "$DO_SPELL" ]] && [[ 0 -eq "$BRANCH_CHECK_9_1" ]] && [ -z "$SKIP_SPELL" ]; then
         CSPELL_CONFIG="$TOP_LEVEL/core/.cspell.json"
         if ! [[ -f "$CSPELL_CONFIG" ]] ; then
           # If Drupal is not shipping with a .cspell.json configuration check

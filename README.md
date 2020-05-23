@@ -70,6 +70,13 @@ git pre-commit check failed: file core/core.services.yml should be 644 not 777
 
 ## Troubleshooting
 
+### Skipping spellchecking
+Spelling checking can be skipped using the SKIP_SPELL environment variable.
+
+```shell script
+SKIP_SPELL=1 git commit -m "SOME MESSAGE"
+```
+
 ### Using core's Coder dev dependency
 
 If you previously installed PHPCS or Coder globally according to instructions on https://www.drupal.org/node/1419988 and your pre-commit hook starts failing silently, you may need to do:
