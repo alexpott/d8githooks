@@ -1,17 +1,243 @@
 #!/bin/bash
-
-#
-# Determine the pre-commit script according to the branch.
-#
-# We could use a regex but simply looking for yarn.lock is better because then
-# the pre-commit hooks will work other branch names and therefore will work for
-# all contributors and not just core committers.
-BRANCH=`git rev-parse --abbrev-ref HEAD`
-TOP_LEVEL=$(git rev-parse --show-toplevel);
-# Ensure the file still exists (i.e. is not being deleted).
-if [ -a "$TOP_LEVEL/core/yarn.lock" ] ; then
-  INCLUDE=`readlink "$0"`-8-4
+if git rev-parse --verify HEAD >/dev/null 2>&1
+then
+    AGAINST=HEAD
 else
-  INCLUDE=`readlink "$0"`-8-3
+    # Initial commit: diff against an empty tree object
+    AGAINST=4b825dc642cb6eb9a060e54bf8d69288fbee4904
 fi
-source "$INCLUDE"
+
+# Function to test for command dependencies.
+command_exists () {
+    type "$1" &> /dev/null ;
+}
+# Function to search array.
+contains_element () {
+  local e
+  for e in ${@:2}; do [[ "$e" == "$1" ]] && return 0; done
+  return 1
+}
+# Set up variables to make coloured output simple.
+red=`tput setaf 1 && tput bold`
+green=`tput setaf 2`
+reset=`tput sgr0`
+
+# Ensure we have all the external tools we need
+if ! command_exists yarn ; then
+  echo "yarn not installed, for instructions visit https://yarnpkg.com/lang/en/docs/install"
+  exit 1
+fi
+if ! command_exists composer ; then
+  echo "composer not installed, for instructions visit https://getcomposer.org/"
+  exit 1
+fi
+
+FILES=$(git diff --cached --name-only $AGAINST);
+TOP_LEVEL=$(git rev-parse --show-toplevel);
+
+# Ensure we have all the things.
+printf "Installing or updating dependencies...\n"
+cd $TOP_LEVEL
+composer install
+cd "$TOP_LEVEL/core"
+yarn install
+cd $TOP_LEVEL
+
+printf "\n\nChecking changed files...\n"
+for FILE in $FILES; do
+    # Standard checks against all files in commit.
+    # Ensure the file still exists (i.e. is not being deleted).
+    if [ -a $FILE ] ; then
+      if [ ${FILE: -3} != ".sh" ] ; then
+        # Ensure we have the correct file permissions
+        STAT="$(stat -f  "%A" $FILE 2>/dev/null)"
+        if [ $? -ne 0 ]; then
+          STAT="$(stat -c  "%a" $FILE 2>/dev/null)"
+        fi
+        if [ "$STAT" -ne "644" ] ; then
+            echo "git pre-commit check failed: file $FILE should be 644 not $STAT"
+            STATUS=1
+        fi
+      fi
+    fi
+    # Don't commit changes to vendor.
+    if [[ "$FILE" =~ ^vendor/ ]]; then
+      echo "git pre-commit check failed: file in vendor directory being committed ($FILE). Copy the example.gitignore to .gitignore in Drupal root and unstage any changes in vendor."
+      STATUS=1
+    fi
+    # Don't commit changes to core/node_modules.
+    if [[ "$FILE" =~ ^core/node_modules/ ]]; then
+      echo "git pre-commit check failed: file in core/node_modules directory being committed ($FILE)"
+      STATUS=1
+    fi
+
+    ############################################################################
+    ### PHP AND YAML FILES
+    ############################################################################
+    if [[ -f "$TOP_LEVEL/$FILE" ]] && [[ $FILE =~ \.(inc|install|module|php|profile|test|theme|yml)$ ]]; then
+        # Test files with phpcs rules.
+        vendor/bin/phpcs "$TOP_LEVEL/$FILE" --runtime-set installed_paths "$TOP_LEVEL/vendor/drupal/coder/coder_sniffer" --standard="$TOP_LEVEL/core/phpcs.xml.dist"
+        PHPCS=$?
+        if [ "$PHPCS" -ne "0" ] ; then
+            # If there are failures set the status to a number other than 0.
+            STATUS=1
+        else
+            echo -e "PHPCS: $FILE ${green}passed${reset}"
+        fi
+
+    fi
+
+    ############################################################################
+    ### JAVASCRIPT FILES
+    ############################################################################
+    if [[ -f "$TOP_LEVEL/$FILE" ]] && [[ $FILE =~ \.js$ ]] && [[ ! $FILE =~ ^core/tests/Drupal/Nightwatch ]] && [[ ! $FILE =~ ^core/assets/vendor/jquery.ui/ui ]]; then
+        # Work out the root name of the Javascript so we can ensure that the ES6
+        # version has been compiled correctly.
+        if [[ $FILE =~ \.es6\.js$ ]] ; then
+          BASENAME=${FILE%.es6.js}
+          COMPILE_CHECK=1
+        else
+          BASENAME=${FILE%.js}
+          # We only need to compile check if the .es6.js file is not also
+          # changing. This is because the compile check will occur for the
+          # .es6.js file. This might occur if the compile scripts have changed.
+          contains_element "$BASENAME.es6.js" "${FILES[@]}"
+          HASES6=$?
+          if [ "$HASES6" -ne "0" ] ; then
+            COMPILE_CHECK=1
+          else
+            COMPILE_CHECK=0
+          fi
+        fi
+        if [[ "$COMPILE_CHECK" == "1" ]] && [[ -f "$TOP_LEVEL/$BASENAME.es6.js" ]] ; then
+          cd "$TOP_LEVEL/core"
+          yarn run build:js --check --file "$TOP_LEVEL/$BASENAME.es6.js"
+          CORRECTJS=$?
+          if [ "$CORRECTJS" -ne "0" ] ; then
+            # No need to write any output the yarn run command will do this for
+            # us.
+            STATUS=1
+          fi
+          # Check the coding standards.
+          if [[ -f ".eslintrc.passing.json" ]]; then
+            node ./node_modules/eslint/bin/eslint.js --quiet --config=.eslintrc.passing.json "$TOP_LEVEL/$BASENAME.es6.js"
+            CORRECTJS=$?
+            if [ "$CORRECTJS" -ne "0" ] ; then
+              # No need to write any output the node command will do this for us.
+              STATUS=1
+            fi
+          fi
+          cd $TOP_LEVEL
+        else
+          # If there is no .es6.js file then there should be unless the .js is
+          # not really Drupal's.
+          if ! [[ "$FILE" =~ ^core/assets/vendor ]] && ! [[ "$FILE" =~ ^core/scripts/js ]] && ! [[ "$FILE" =~ ^core/scripts/css ]] && ! [[ "$FILE" =~ core/postcss.config.js ]] && ! [[ -f "$TOP_LEVEL/$BASENAME.es6.js" ]]; then
+            echo -e "${red}FAILURE${reset} $FILE does not have a corresponding $BASENAME.es6.js"
+            STATUS=1
+          fi
+        fi
+    elif [[ -f "$TOP_LEVEL/$FILE" ]] && [[ $FILE =~ \.js$ ]] && [[ $FILE =~ ^core/assets/vendor/jquery.ui/ui ]]; then
+      ## Check for minified file changes.
+      if [[ $FILE =~ -min\.js$ ]] ; then
+        BASENAME=${FILE%-min.js}
+        contains_element "$BASENAME.js" "${FILES[@]}"
+        HASSRC=$?
+        if [ "$HASSRC" -ne "0" ] ; then
+          COMPILE_CHECK=1
+        else
+          ## Source was also changed and will be checked.
+          COMPILE_CHECK=0
+        fi
+      else
+        ## Check for source changes.
+        BASENAME=${FILE%.js}
+        COMPILE_CHECK=1
+      fi
+      if [[ "$COMPILE_CHECK" == "1" ]] && [[ -f "$TOP_LEVEL/$BASENAME.js" ]] ; then
+        cd "$TOP_LEVEL/core"
+        yarn run build:jqueryui --check --file "$TOP_LEVEL/$BASENAME.js"
+        CORRECTJS=$?
+        if [ "$CORRECTJS" -ne "0" ] ; then
+          # The yarn run command will write any error output.
+          STATUS=1
+        fi
+        cd $TOP_LEVEL
+      else
+        # If there is no .js source file
+        if ! [[ -f "$TOP_LEVEL/$BASENAME.js" ]]; then
+          echo -e "${red}FAILURE${reset} $FILE does not have a corresponding $BASENAME.js"
+          STATUS=1
+        fi
+      fi
+    else
+      # Check coding standards of Nightwatch files.
+      if [[ -f "$TOP_LEVEL/$FILE" ]] && [[ $FILE =~ \.js$ ]]; then
+        cd "$TOP_LEVEL/core"
+        # Check the coding standards.
+        if [[ -f ".eslintrc.passing.json" ]]; then
+          node ./node_modules/eslint/bin/eslint.js --quiet --config=.eslintrc.passing.json "$TOP_LEVEL/$FILE"
+          CORRECTJS=$?
+          if [ "$CORRECTJS" -ne "0" ] ; then
+            # No need to write any output the node command will do this for us.
+            STATUS=1
+          fi
+        fi
+        cd $TOP_LEVEL
+      fi
+    fi
+
+    ############################################################################
+    ### CSS FILES
+    ############################################################################
+    if [[ -f "$TOP_LEVEL/$FILE" ]] && [[ $FILE =~ \.css$ ]] ; then
+      # Work out the root name of the CSS so we can ensure that the PostCSS
+      # version has been compiled correctly.
+      if [[ $FILE =~ \.pcss\.css$ ]] ; then
+        BASENAME=${FILE%.pcss.css}
+        COMPILE_CHECK=1
+      else
+        BASENAME=${FILE%.css}
+        # We only need to compile check if the .pcss.css file is not also
+        # changing. This is because the compile check will occur for the
+        # .pcss.css file. This might occur if the compiled stylesheets have
+        # changed.
+        contains_element "$BASENAME.pcss.css" "${FILES[@]}"
+        HASPOSTCSS=$?
+        if [ "$HASPOSTCSS" -ne "0" ] ; then
+          COMPILE_CHECK=1
+        else
+          COMPILE_CHECK=0
+        fi
+      fi
+      # PostCSS
+      if [[ "$COMPILE_CHECK" == "1" ]] && [[ -f "$TOP_LEVEL/$BASENAME.pcss.css" ]] ; then
+        cd "$TOP_LEVEL/core"
+        yarn run build:css --check --file "$TOP_LEVEL/$BASENAME.pcss.css"
+        CORRECTCSS=$?
+        if [ "$CORRECTCSS" -ne "0" ] ; then
+          # No need to write any output the yarn run command will do this for
+          # us.
+          STATUS=1
+        fi
+        cd $TOP_LEVEL
+      fi
+    fi
+    if [[ -f "$TOP_LEVEL/$FILE" ]] && [[ $FILE =~ \.css$ ]] && [[ -f "core/node_modules/.bin/stylelint" ]] ; then
+      BASENAME=${FILE%.css}
+      # We only need to use stylelint on the .pcss.css file. So if this css file
+      # has a corresponding .pcss don't do styleint.
+      if [[ $FILE =~ \.pcss\.css$ ]] || [[ ! -f "$TOP_LEVEL/$BASENAME.pcss.css" ]] ; then
+        cd "$TOP_LEVEL/core"
+        node_modules/.bin/stylelint "$TOP_LEVEL/$FILE"
+        if [ "$?" -ne "0" ] ; then
+          STATUS=1
+        else
+          echo -e "STYLELINT: $FILE ${green}passed${reset}"
+        fi
+        cd $TOP_LEVEL
+      fi
+    fi
+
+done
+
+exit $STATUS
