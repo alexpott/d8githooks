@@ -45,6 +45,14 @@ cd "$TOP_LEVEL/core"
 yarn install
 cd $TOP_LEVEL
 
+# Check to see we're on atleast 9.1.x.
+git merge-base --is-ancestor c0204735a8 $BRANCH
+BRANCH_CHECK_9_1=$?
+# Check to see if we can use cspell.
+# @todo use yarn command once available.
+command_exists cspell
+DO_SPELL=$?
+
 printf "\n\nChecking changed files...\n"
 for FILE in $FILES; do
     # Standard checks against all files in commit.
@@ -61,9 +69,7 @@ for FILE in $FILES; do
             STATUS=1
         fi
       fi
-      # If we're on atleast 9.1.x and there is a cspell command available.
-      # @todo use yarn command once available.
-      if command_exists cspell && [[ 0 -eq $(git merge-base --is-ancestor c0204735a8 $BRANCH) ]]; then
+      if [[ 0 -eq "$DO_SPELL" ]] && [[ 0 -eq "$BRANCH_CHECK_9_1" ]]; then
         CSPELL_CONFIG="$TOP_LEVEL/core/.cspell.json"
         if ! [[ -f "$CSPELL_CONFIG" ]] ; then
           # If Drupal is not shipping with a .cspell.json configuration check
