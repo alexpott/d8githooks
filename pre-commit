@@ -49,9 +49,24 @@ cd $TOP_LEVEL
 git merge-base --is-ancestor c0204735a8 $BRANCH
 BRANCH_CHECK_9_1=$?
 # Check to see if we can use cspell.
-# @todo use yarn command once available.
-command_exists cspell
-DO_SPELL=$?
+CSPELL_CMD=""
+if [ -a "$TOP_LEVEL/core/node_modules/cspell" ] ; then
+  CSPELL_CMD="yarn run -s spellcheck"
+else
+  if command_exists cspell ; then
+    CSPELL_CMD="cspell"
+  fi
+fi
+# Work out which cspell config to use.
+if [[ ! -z "$CSPELL_CMD" ]] ; then
+  if ! [[ -f "$TOP_LEVEL/core/.cspell.json" ]] ; then
+    # If Drupal is not shipping with a .cspell.json configuration check
+    # the .git/hooks directory.
+    SCRIPT_DIRECTORY="$(dirname "$0")"
+    CSPELL_CMD="$CSPELL_CMD -c $TOP_LEVEL/$SCRIPT_DIRECTORY/.cspell.json"
+    echo -e "CSPELL: using configuration $TOP_LEVEL/$SCRIPT_DIRECTORY/.cspell.json"
+  fi
+fi
 
 printf "\n\nChecking changed files...\n"
 for FILE in $FILES; do
@@ -69,24 +84,17 @@ for FILE in $FILES; do
             STATUS=1
         fi
       fi
-      if [[ 0 -eq "$DO_SPELL" ]] && [[ 0 -eq "$BRANCH_CHECK_9_1" ]] && [ -z "$SKIP_SPELL" ]; then
-        CSPELL_CONFIG="$TOP_LEVEL/core/.cspell.json"
-        if ! [[ -f "$CSPELL_CONFIG" ]] ; then
-          # If Drupal is not shipping with a .cspell.json configuration check
-          # the .git/hooks directory.
-          SCRIPT_DIRECTORY="$(dirname "$0")"
-          CSPELL_CONFIG="$SCRIPT_DIRECTORY/.cspell.json"
+
+      if [[ ! -z "$CSPELL_CMD" ]] && [[ 0 -eq "$BRANCH_CHECK_9_1" ]] && [ -z "$SKIP_SPELL" ]; then
+        cd "$TOP_LEVEL/core"
+        $CSPELL_CMD --no-summary "$TOP_LEVEL/$FILE"
+        if [ "$?" -ne "0" ] ; then
+            # If there are failures set the status to a number other than 0.
+            STATUS=1
+        else
+            echo -e "CSPELL: $FILE ${green}passed${reset}"
         fi
-        if [[ -f "$CSPELL_CONFIG" ]] ; then
-          echo -e "CSPELL: using configuration $CSPELL_CONFIG"
-          cspell -c $CSPELL_CONFIG --no-summary "$TOP_LEVEL/$FILE"
-          if [ "$?" -ne "0" ] ; then
-              # If there are failures set the status to a number other than 0.
-              STATUS=1
-          else
-              echo -e "CSPELL: $FILE ${green}passed${reset}"
-          fi
-        fi
+        cd $TOP_LEVEL
       fi
     fi
     # Don't commit changes to vendor.
