@@ -60,11 +60,13 @@ fi
 # Work out which cspell config to use.
 if [[ ! -z "$CSPELL_CMD" ]] ; then
   if ! [[ -f "$TOP_LEVEL/core/.cspell.json" ]] ; then
-    # If Drupal is not shipping with a .cspell.json configuration check
-    # the .git/hooks directory.
-    SCRIPT_DIRECTORY="$(dirname "$0")"
-    CSPELL_CMD="$CSPELL_CMD -c $TOP_LEVEL/$SCRIPT_DIRECTORY/.cspell.json"
-    echo -e "CSPELL: using configuration $TOP_LEVEL/$SCRIPT_DIRECTORY/.cspell.json"
+    # If Drupal is not shipping with a .cspell.json configuration check the
+    # githooks repository directory.
+    SCRIPT_DIRECTORY=$(dirname $(readlink "$0"))
+    if [[ -f "$SCRIPT_DIRECTORY/.cspell.json" ]] ; then
+      CSPELL_CMD="$CSPELL_CMD -c $SCRIPT_DIRECTORY/.cspell.json"
+      echo -e "CSPELL: using configuration $SCRIPT_DIRECTORY/.cspell.json"
+    fi
   fi
 fi
 
