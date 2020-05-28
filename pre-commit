@@ -36,6 +36,11 @@ fi
 
 FILES=$(git diff --cached --name-only $AGAINST);
 TOP_LEVEL=$(git rev-parse --show-toplevel);
+# Build up a list of absolute file names.
+ABS_FILES=;
+for FILE in $FILES; do
+    ABS_FILES="$ABS_FILES $TOP_LEVEL/$FILE"
+done
 
 # Ensure we have all the things.
 printf "Installing or updating dependencies...\n"
@@ -59,18 +64,33 @@ else
 fi
 # Work out which cspell config to use.
 if [[ ! -z "$CSPELL_CMD" ]] ; then
-  if ! [[ -f "$TOP_LEVEL/core/.cspell.json" ]] ; then
+  CSPELL_CONFIG_DIRECTORY="$TOP_LEVEL/core"
+  if ! [[ -f "$CSPELL_CONFIG_DIRECTORY/.cspell.json" ]] ; then
     # If Drupal is not shipping with a .cspell.json configuration check the
     # githooks repository directory.
-    SCRIPT_DIRECTORY=$(dirname $(readlink "$0"))
-    if [[ -f "$SCRIPT_DIRECTORY/.cspell.json" ]] ; then
-      CSPELL_CMD="$CSPELL_CMD -c $SCRIPT_DIRECTORY/.cspell.json"
-      echo -e "CSPELL: using configuration $SCRIPT_DIRECTORY/.cspell.json"
-    fi
+    CSPELL_CONFIG_DIRECTORY=$(dirname $(readlink "$0"))
   fi
+  echo -e "CSPELL: using configuration $CSPELL_CONFIG_DIRECTORY/.cspell.json"
+  CSPELL_CMD="$CSPELL_CMD -c $CSPELL_CONFIG_DIRECTORY/.cspell.json"
+  echo $CSPELL_CMD
 fi
 
 printf "\n\nChecking changed files...\n"
+
+# Check all files for spelling in one go for better performance.
+if [[ ! -z "$CSPELL_CMD" ]] && [[ 0 -eq "$BRANCH_CHECK_9_1" ]] && [ -z "$SKIP_SPELL" ]; then
+  cd "$TOP_LEVEL/core"
+  echo -e "CSPELL: checking all files"
+  $CSPELL_CMD $ABS_FILES
+  if [ "$?" -ne "0" ] ; then
+      # If there are failures set the status to a number other than 0.
+      STATUS=1
+  else
+      echo -e "CSPELL: ${green}passed${reset}"
+  fi
+  cd "$TOP_LEVEL"
+fi
+
 for FILE in $FILES; do
     # Standard checks against all files in commit.
     # Ensure the file still exists (i.e. is not being deleted).
@@ -85,18 +105,6 @@ for FILE in $FILES; do
             echo "git pre-commit check failed: file $FILE should be 644 not $STAT"
             STATUS=1
         fi
-      fi
-
-      if [[ ! -z "$CSPELL_CMD" ]] && [[ 0 -eq "$BRANCH_CHECK_9_1" ]] && [ -z "$SKIP_SPELL" ]; then
-        cd "$TOP_LEVEL/core"
-        $CSPELL_CMD --no-summary "$TOP_LEVEL/$FILE"
-        if [ "$?" -ne "0" ] ; then
-            # If there are failures set the status to a number other than 0.
-            STATUS=1
-        else
-            echo -e "CSPELL: $FILE ${green}passed${reset}"
-        fi
-        cd $TOP_LEVEL
       fi
     fi
     # Don't commit changes to vendor.
