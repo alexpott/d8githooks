@@ -8,6 +8,12 @@ else
 fi
 
 BRANCH=`git rev-parse --abbrev-ref HEAD`
+TOP_LEVEL=$(git rev-parse --show-toplevel);
+
+if [ -a "$TOP_LEVEL/core/scripts/dev/commit-code-check.sh" ] ; then
+  $TOP_LEVEL/core/scripts/dev/commit-code-check.sh --cached
+  exit $?;
+fi
 
 # Function to test for command dependencies.
 command_exists () {
@@ -35,7 +41,6 @@ if ! command_exists composer ; then
 fi
 
 FILES=$(git diff --cached --name-only $AGAINST);
-TOP_LEVEL=$(git rev-parse --show-toplevel);
 # Build up a list of absolute file names.
 ABS_FILES=;
 for FILE in $FILES; do
