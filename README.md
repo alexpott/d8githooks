@@ -11,11 +11,9 @@ This project depends on:
 
 1. [git] (https://git-scm.com/downloads)
 1. [composer](https://getcomposer.org/download/)
-1. Drupal 8
-1. [Node.js](https://nodejs.org/en/download/)
-1. [eslint](http://eslint.org/docs/user-guide/getting-started)
-1. [yarn](https://yarnpkg.com/en/)
+1. Drupal 10
 1. Running composer install in the root directory of the repository you have checked out
+1. Running yarn install in the core directory of the repository you have checked out
 
 ### Optional dependencies
 1. [Homebrew](http://brew.sh/) (You can use homebrew to install many of the dependencies above.)
@@ -69,13 +67,6 @@ git pre-commit check failed: file core/core.services.yml should be 644 not 777
 
 ## Troubleshooting
 
-### Skipping spellchecking
-Spelling checking can be skipped using the SKIP_SPELL environment variable.
-
-```shell script
-SKIP_SPELL=1 git commit -m "SOME MESSAGE"
-```
-
 ### Using core's Coder dev dependency
 
 If you previously installed PHPCS or Coder globally according to instructions on https://www.drupal.org/node/1419988 and your pre-commit hook starts failing silently, you may need to do:
@@ -102,7 +93,7 @@ To manually test the standard on a particular file prior to commit:
 3. From the root of the repository, run:
 
    ````
-   vendor/bin/phpcs --standard="core/phpcs.xml.dist" core/path/to/file.php
+   composer run phpcs -- core/path/to/file.php
    ````
 
    You can confirm that the check is working properly by (e.g.) adding an unused use statement to the file and ensuring it raises an error.
@@ -110,7 +101,7 @@ To manually test the standard on a particular file prior to commit:
    Similarly, to use phpcbf to fix a file, run:
 
    ````
-   vendor/bin/phpcs --standard="core/phpcs.xml.dist" core/path/to/file.php
+   composer run phpcbf -- core/path/to/file.php
    ````
 
    Note that in some cases the enabled core rules are not enough to fix errors correctly! You can also check:
@@ -118,7 +109,7 @@ To manually test the standard on a particular file prior to commit:
    ````
    vendor/bin/phpcs --standard=Drupal core/path/to/file.php
    ````
-
+   
    Be aware, however, that this may introduce out-of-scope changes as it will run rules that core does not yet comply with.
 
 ### Troubleshooting eslint
