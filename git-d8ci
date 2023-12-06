@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Instructions for set up:
 # 1. Put this in a file named git-d8ci in your $PATH
@@ -60,11 +60,7 @@ do
   git cherry-pick -x $commit_hash
   branch_hash=`git log -n 1 --pretty=format:"%h"`
   thanks_message="$thanks_message and <a href=\"https://git.drupalcode.org/project/drupal/commit/$branch_hash\">$branch_hash</a> to $branch"
-  if [[ "$SHELL" =~ fish$ ]] ; then
-    push_message="$push_message; and git push origin $branch"
-  else
-    push_message="$push_message && git push origin $branch"
-  fi
+  push_message="$push_message $branch"
 done
 
 git checkout $first_branch
