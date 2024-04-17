@@ -118,7 +118,9 @@ To manually test the standard on a particular file prior to commit:
 sudo npm update -g
 ````
 
+If you previously installed yarn from Homebrew or another non-npm package manager:
 ````
+brew uninstall yarn
 npm install -g corepack
 corepack enable
 ````
