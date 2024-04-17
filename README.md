@@ -118,5 +118,10 @@ To manually test the standard on a particular file prior to commit:
 sudo npm update -g
 ````
 
+````
+npm install -g corepack
+corepack enable
+````
+
 ## How to use
 @todo something about what standard message(s) to copy/paste.
