@@ -3,7 +3,7 @@
 TOP_LEVEL=$(git rev-parse --show-toplevel);
 
 if [ -a "$TOP_LEVEL/core/scripts/dev/commit-code-check.sh" ] ; then
-  $TOP_LEVEL/core/scripts/dev/commit-code-check.sh --cached
+  $TOP_LEVEL/core/scripts/dev/commit-code-check.sh --cached --memory-unlimited
   exit $?;
 else
   echo "Can not find $TOP_LEVEL/core/scripts/dev/commit-code-check.sh"
