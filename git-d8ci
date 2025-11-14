@@ -28,7 +28,9 @@ test -z $branches && echo "Other branch to commit to required." 1>&2 && exit 1
 branches=$(echo $branches | tr "," "\n")
 
 message=$2
-commit_regex="^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test){1}(\([[:alnum:]._-]+\))?(!)?: #[0-9]* "
+# Note: 'task' is not part of conventional commit spec but is a Drupal-ism.
+# Inspired by https://gist.github.com/marcojahn/482410b728c31b221b70ea6d2c433f0c.
+commit_regex="^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|task|test){1}(\([[:alnum:]._-]+\))?(!)?: #[0-9]* "
 test -z "$message" && echo "Commit message required." 1>&2 && exit 1
 if ! [[ "$message" =~ $commit_regex ]]; then
     echo "Message should start with a conventional commit type. See https://github.com/pvdlg/conventional-changelog-metahub#commit-types" 1>&2 && exit 1
