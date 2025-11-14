@@ -29,8 +29,8 @@ branches=$(echo $branches | tr "," "\n")
 
 message=$2
 test -z "$message" && echo "Commit message required." 1>&2 && exit 1
-if ! [[ "$message" =~ ^Issue ]]; then
-    echo "Message \"$message\" should start with 'Issue'." 1>&2 && exit 1
+if ! [[ "$message" =~ ^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert): ]]; then
+    echo "Message should start with a conventional commit type. See https://github.com/pvdlg/conventional-changelog-metahub#commit-types" 1>&2 && exit 1
 fi
 
 for branch in $branches
