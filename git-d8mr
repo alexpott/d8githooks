@@ -1,0 +1,73 @@
+#!/bin/bash
+
+set -euo pipefail
+
+if [ $# -lt 2 ]; then
+  echo "Usage: git d8mr <issue_type> <merge_request_id> [additional_branches]" 1>&2
+  exit 1
+fi
+
+if [ ! -z "$(git status --untracked-files=no --porcelain)" ]; then
+  echo "Error: Working directory is not clean." 1>&2
+  exit 1
+fi
+
+TYPE=$1
+if [[ ! "$TYPE" =~ ^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|task|test)$ ]]; then
+  echo "Error: Invalid issue type, see https://github.com/pvdlg/conventional-changelog-metahub#commit-types" 1>&2
+  exit 1
+fi
+
+MR=$2
+ISSUE=$(curl --silent https://git.drupalcode.org/api/v4/projects/project%2Fdrupal/merge_requests/${MR} | jq -r .source_branch | cut -d- -f1)
+echo "Issue: https://www.drupal.org/project/drupal/issues/${ISSUE}"
+
+CRURL=$(curl -Ls -w %{url_effective} -o /dev/null https://new.drupal.org/contribution-record?source_link=https%3A//www.drupal.org/node/${ISSUE})
+CRDATA=$(curl --silent --globoff "https://www.drupal.org/jsonapi/node/contribution_record?filter[nid]=${CRURL##*/}&include=field_contributors,field_contributors.field_contributor_user")
+AUTHORS=$(echo $CRDATA | jq -r '
+  INDEX(.included[] | select(.type=="user--user"); .id) as $users
+   | .included[]
+   | select(.attributes.field_credit_this_contributor)
+   | "By: " + $users[.relationships.field_contributor_user.data.id].attributes.display_name
+')
+
+if [ -z "$AUTHORS" ]; then
+  echo "Error: No credits found, update the contribution record first: $CRURL" 1>&2
+  exit 1
+fi
+
+MRURL="https://git.drupalcode.org/project/drupal/-/merge_requests/${MR}"
+echo "Applying patch from $MRURL"
+echo
+curl --silent --fail ${MRURL}.diff | git apply -v --index
+echo
+
+MESSAGE="${TYPE}: #${ISSUE} $(echo $CRDATA | jq -r .data[0].attributes.title)
+
+$AUTHORS"
+echo "$MESSAGE"
+echo
+git commit -m "$MESSAGE"
+
+branches=$(echo $3 | tr "," "\n")
+first_branch=`git rev-parse --abbrev-ref HEAD`
+commit_hash=`git log -n 1 --pretty=format:"%H"`
+short_commit_hash=`git log -n 1 --pretty=format:"%h"`
+thanks_message="Committed and pushed <a href=\"https://git.drupalcode.org/project/drupal/commit/$short_commit_hash\">$short_commit_hash</a> to $first_branch"
+push_message="Use the following command to push the changes: git push origin $first_branch"
+
+for branch in $branches
+do
+  # Cherry pick to the other branches. The -x option adds an additional line to the commit message linking back to the original commit.
+  git checkout $branch
+  git pull --rebase
+  git cherry-pick -x $commit_hash
+  branch_hash=`git log -n 1 --pretty=format:"%h"`
+  thanks_message="$thanks_message and <a href=\"https://git.drupalcode.org/project/drupal/commit/$branch_hash\">$branch_hash</a> to $branch"
+  push_message="$push_message $branch"
+done
+
+git checkout $first_branch
+echo "$push_message"
+
+echo "$thanks_message. Thanks!" | pbcopy
