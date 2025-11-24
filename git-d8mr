@@ -23,7 +23,7 @@ ISSUE=$(curl --silent https://git.drupalcode.org/api/v4/projects/project%2Fdrupa
 echo "Issue: https://www.drupal.org/project/drupal/issues/${ISSUE}"
 
 CRURL=$(curl -Ls -w %{url_effective} -o /dev/null https://new.drupal.org/contribution-record?source_link=https%3A//www.drupal.org/node/${ISSUE})
-CRDATA=$(curl --silent --globoff "https://www.drupal.org/jsonapi/node/contribution_record?filter[nid]=${CRURL##*/}&include=field_contributors,field_contributors.field_contributor_user")
+CRDATA=$(curl --silent --globoff "https://www.drupal.org/jsonapi/node/contribution_record?filter[nid]=${CRURL##*/}&include=field_contributors,field_contributors.field_contributor_user" --cookie _cachebuster=$(date +%s))
 AUTHORS=$(echo $CRDATA | jq -r '
   INDEX(.included[] | select(.type=="user--user"); .id) as $users
    | .included[]
