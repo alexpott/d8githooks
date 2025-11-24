@@ -19,7 +19,8 @@ if [[ ! "$TYPE" =~ ^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|tas
 fi
 
 MR=$2
-ISSUE=$(curl --silent https://git.drupalcode.org/api/v4/projects/project%2Fdrupal/merge_requests/${MR} | jq -r .source_branch | cut -d- -f1)
+PROJECT=$(curl --silent https://git.drupalcode.org/api/v4/projects/project%2Fdrupal/merge_requests/${MR} | jq -r .source_project_id)
+ISSUE=$(curl --silent https://git.drupalcode.org/api/v4/projects/${PROJECT} | jq -r .path | cut -d- -f2)
 echo "Issue: https://www.drupal.org/project/drupal/issues/${ISSUE}"
 
 CRURL=$(curl -Ls -w %{url_effective} -o /dev/null https://new.drupal.org/contribution-record?source_link=https%3A//www.drupal.org/node/${ISSUE})
