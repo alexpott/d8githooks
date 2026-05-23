@@ -85,9 +85,23 @@ git pre-commit check failed: file core/core.services.yml should be 644 not 777
 5. Decide if there are any additional branches to merge to
 6. Run the command:
    ````
-   git drmr <issue_type> <merge_request_id> [additional_branches]
+   git drmr [--apply|--commit] <issue_type> <merge_request_id> [additional_branches]
    ````
    The merge request ID can be either the numeric ID (e.g. `9395`) or the full GitLab URL (e.g. `https://git.drupalcode.org/project/drupal/-/merge_requests/9395`).
+
+### Flags
+
+By default the command applies the MR diff and immediately commits. Two flags allow splitting these steps:
+
+- `--apply` — Applies the MR diff to the current branch and exits without committing. Useful when you want to review or amend the changes before committing. The contribution record does not need to be updated before using this flag.
+- `--commit` — Skips applying the diff and goes straight to creating the commit message, committing to the current branch, and cherry-picking to any additional branches. Use this after `--apply` once the contribution record is ready.
+
+Example two-step workflow:
+````
+git drmr --apply fix 9395
+# Review changes, update contribution record on drupal.org...
+git drmr --commit fix 9395 11.x,10.3.x
+````
 
 ## Troubleshooting
 
