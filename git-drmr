@@ -51,17 +51,16 @@ if [ -z "$AUTHORS" ]; then
 fi
 
 MRURL="https://git.drupalcode.org/project/drupal/-/merge_requests/${MR}"
-echo "Applying patch from $MRURL"
+echo "Merging $MRURL"
 echo
-curl --silent --fail ${MRURL}.diff | git apply -v --index
-echo
-
+git fetch -q "https://git.drupalcode.org/project/drupal.git" "merge-requests/${MR}/head"
 MESSAGE="${TYPE}: #${ISSUE} $(echo $CRDATA | jq -r .data[0].attributes.title)
 
 $AUTHORS"
 echo "$MESSAGE"
 echo
-git commit -m "$MESSAGE"
+git merge --squash FETCH_HEAD
+git commit --message "${MESSAGE}" || { echo "Error: git commit failed (pre-commit hook?)" 1>&2; exit 1; }
 
 branches=$(echo "${3:-}" | tr "," "\n")
 first_branch=`git rev-parse --abbrev-ref HEAD`
