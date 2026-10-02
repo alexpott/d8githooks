@@ -78,14 +78,14 @@ git pre-commit check failed: file core/core.services.yml should be 644 not 777
 
 ## Using git-drmr
 
-1. Go to Drupal checkout on a branch you want to commit to.
+1. Check out the Drupal branch you want to commit to in a local clone.
 2. Get the merge request ID that you want to commit from Drupal.org.
 3. Fill out the contribution record for the issue.
-4. Decide on the issue type - see https://www.drupal.org/node/3586390
-5. Decide if there are any additional branches to merge to
+4. Decide on the [issue type for the commit message](https://www.drupal.org/node/3586390).
+5. Decide if there are any additional branches to merge to.
 6. Run the command:
    ````
-   git drmr <issue_type> <merge_request_id> [additional_branches]
+   git drmr <issue_type> <merge_request_id> [additional_branch1,additional_branch2]
    ````
    The merge request ID can be either the numeric ID (e.g. `9395`) or the full GitLab URL (e.g. `https://git.drupalcode.org/project/drupal/-/merge_requests/9395`).
 
