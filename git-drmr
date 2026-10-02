@@ -3,7 +3,7 @@
 set -euo pipefail
 
 if [ $# -lt 2 ]; then
-  echo "Usage: git drmr <issue_type> <merge_request_id> [additional_branches]" 1>&2
+  echo "Usage: git drmr <issue_type> <merge_request_id> [additional_branch1,additional_branch2]" 1>&2
   exit 1
 fi
 
