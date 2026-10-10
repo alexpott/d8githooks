@@ -61,6 +61,8 @@ MESSAGE="${TYPE}: #${ISSUE} $(echo $CRDATA | jq -r .data[0].attributes.title)
 $AUTHORS"
 echo "$MESSAGE"
 echo
+echo "Running composer and yarn install"
+composer install && cd core && yarn install && cd ..
 git commit -m "$MESSAGE"
 
 branches=$(echo "${3:-}" | tr "," "\n")
