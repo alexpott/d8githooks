@@ -58,7 +58,7 @@ This project depends on:
    chmod a+x git-drmr
    ````
 
-### Testing the set up
+### Testing the setup
 To test that it's working, introduce a file permissions error and then attempt to commit a text change:
 
 ````
@@ -70,7 +70,7 @@ git add core/core.services.yml
 git commit -m "Test."
 ````
 
-You should see various errors due to the permission and YAML content change:
+You should see various errors due to the permission and YAML content change. For example, as of November 2026:
 
 ````
 [... from phpstan ...]
