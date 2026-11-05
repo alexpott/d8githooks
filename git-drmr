@@ -3,7 +3,7 @@
 set -euo pipefail
 
 if [ $# -lt 2 ]; then
-  echo "Usage: git drmr <issue_type> <merge_request_id> [additional_branches]" 1>&2
+  echo "Usage: git drmr <issue_type> <merge_request_id> [additional_branch1,additional_branch2]" 1>&2
   exit 1
 fi
 
@@ -54,12 +54,14 @@ MRURL="https://git.drupalcode.org/project/drupal/-/merge_requests/${MR}"
 echo "Merging $MRURL"
 echo
 git fetch -q "https://git.drupalcode.org/project/drupal.git" "merge-requests/${MR}/head"
+git merge --squash FETCH_HEAD
 MESSAGE="${TYPE}: #${ISSUE} $(echo $CRDATA | jq -r .data[0].attributes.title)
 
 $AUTHORS"
 echo "$MESSAGE"
 echo
-git merge --squash FETCH_HEAD
+echo "Running composer and yarn install"
+composer install && cd core && yarn install && cd ..
 git commit --message "${MESSAGE}" || { echo "Error: git commit failed (pre-commit hook?)" 1>&2; exit 1; }
 
 branches=$(echo "${3:-}" | tr "," "\n")
