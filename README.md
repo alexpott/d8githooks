@@ -70,9 +70,16 @@ git add core/core.services.yml
 git commit -m "Test."
 ````
 
-You should see the error:
+You should see various errors due to the permission and YAML content change:
 
 ````
+[... from phpstan ...]
+Symfony\Component\Yaml\Exception\ParseException thrown in /Users/gabor.hojtsy/Drupal/corecommits/vendor/symfony/yaml/Parser.php on line 527 while loading bootstrap file /Users/gabor.hojtsy/Drupal/corecommits/vendor/mglaman/phpstan-drupal/drupal-autoloader.php: Unable to parse in "/Users/gabor.hojtsy/Drupal/corecommits/core/core.services.yml" at line 2107 (near "test").
+
+[... from eslint ...]
+2107:0  error  Parsing error: Implicit map keys need to be followed by map values
+
+[... finally ...]
 git pre-commit check failed: file core/core.services.yml should be 644 not 777
 ````
 
