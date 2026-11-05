@@ -21,7 +21,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [ $# -lt 2 ]; then
-  echo "Usage: git drmr [--apply|--commit] <issue_type> <merge_request_id> [additional_branches]" 1>&2
+  echo "Usage: git drmr [--apply|--commit] <issue_type> <merge_request_id> [additional_branch1,additional_branch2]" 1>&2
   exit 1
 fi
 
@@ -89,6 +89,8 @@ MESSAGE="${TYPE}: #${ISSUE} $(echo $CRDATA | jq -r .data[0].attributes.title)
 $AUTHORS"
 echo "$MESSAGE"
 echo
+echo "Running composer and yarn install"
+composer install && cd core && yarn install && cd ..
 git commit -m "$MESSAGE"
 
 branches=$(echo "${3:-}" | tr "," "\n")
