@@ -32,7 +32,8 @@ MR=$2
 if [[ "$MR" =~ merge_requests/([0-9]+) ]]; then
   MR="${BASH_REMATCH[1]}"
 fi
-PROJECT=$(curl --silent https://git.drupalcode.org/api/v4/projects/project%2Fdrupal/merge_requests/${MR} | jq -r .source_project_id)
+MRDATA=$(curl --silent https://git.drupalcode.org/api/v4/projects/project%2Fdrupal/merge_requests/${MR})
+PROJECT=$(echo "$MRDATA" | jq -r .source_project_id)
 ISSUE=$(curl --silent "https://git.drupalcode.org/api/v4/projects/${PROJECT}" | jq -r '.path | capture("(?<id>[0-9]+)$").id')
 echo "Issue: https://www.drupal.org/project/drupal/issues/${ISSUE}"
 
@@ -54,6 +55,16 @@ MRURL="https://git.drupalcode.org/project/drupal/-/merge_requests/${MR}"
 echo "Merging $MRURL"
 echo
 git fetch -q "https://git.drupalcode.org/project/drupal.git" "merge-requests/${MR}/head"
+
+# A squash merge uses merge-base(HEAD, FETCH_HEAD) as its base. If the current
+# branch does not contain the commit the MR was branched from, the merge would
+# pull in unrelated commits from the MR's target branch.
+MRBASE=$(echo "$MRDATA" | jq -r .diff_refs.base_sha)
+if ! git merge-base --is-ancestor "$MRBASE" HEAD; then
+  echo "Error: $(git rev-parse --abbrev-ref HEAD) does not contain the commit this MR was branched from (${MRBASE:0:10})." 1>&2
+  echo "Merging would include unrelated commits. Check out the MR's target branch (usually main) and pass other branches as the third argument to cherry-pick to them." 1>&2
+  exit 1
+fi
 git merge --squash FETCH_HEAD
 MESSAGE="${TYPE}: #${ISSUE} $(echo $CRDATA | jq -r .data[0].attributes.title)
 
