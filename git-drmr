@@ -32,7 +32,8 @@ MR=$2
 if [[ "$MR" =~ merge_requests/([0-9]+) ]]; then
   MR="${BASH_REMATCH[1]}"
 fi
-PROJECT=$(curl --silent https://git.drupalcode.org/api/v4/projects/project%2Fdrupal/merge_requests/${MR} | jq -r .source_project_id)
+MRDATA=$(curl --silent https://git.drupalcode.org/api/v4/projects/project%2Fdrupal/merge_requests/${MR})
+PROJECT=$(echo "$MRDATA" | jq -r .source_project_id)
 ISSUE=$(curl --silent "https://git.drupalcode.org/api/v4/projects/${PROJECT}" | jq -r '.path | capture("(?<id>[0-9]+)$").id')
 echo "Issue: https://www.drupal.org/project/drupal/issues/${ISSUE}"
 
@@ -51,10 +52,28 @@ if [ -z "$AUTHORS" ]; then
 fi
 
 MRURL="https://git.drupalcode.org/project/drupal/-/merge_requests/${MR}"
-echo "Applying patch from $MRURL"
-echo
-curl --silent --fail ${MRURL}.diff | git apply -v --index
-echo
+first_branch=`git rev-parse --abbrev-ref HEAD`
+if [ "$first_branch" = "main" ]; then
+  echo "Merging $MRURL"
+  echo
+  git fetch -q "https://git.drupalcode.org/project/drupal.git" "merge-requests/${MR}/head"
+
+  # A squash merge uses merge-base(HEAD, FETCH_HEAD) as its base. If main does
+  # not contain the commit the MR was branched from, the merge would pull in
+  # unrelated commits from the MR's target branch.
+  MRBASE=$(echo "$MRDATA" | jq -r .diff_refs.base_sha)
+  if ! git merge-base --is-ancestor "$MRBASE" HEAD; then
+    echo "Error: main does not contain the commit this MR was branched from (${MRBASE:0:10})." 1>&2
+    echo "Merging would include unrelated commits. Update main, or check out the MR's target branch and pass other branches as the third argument to cherry-pick to them." 1>&2
+    exit 1
+  fi
+  git merge --squash FETCH_HEAD
+else
+  echo "Applying patch from $MRURL"
+  echo
+  curl --silent --fail ${MRURL}.diff | git apply -v --index
+  echo
+fi
 
 MESSAGE="${TYPE}: #${ISSUE} $(echo $CRDATA | jq -r .data[0].attributes.title)
 
@@ -63,10 +82,9 @@ echo "$MESSAGE"
 echo
 echo "Running composer and yarn install"
 composer install && cd core && yarn install && cd ..
-git commit -m "$MESSAGE"
+git commit --message "${MESSAGE}" || { echo "Error: git commit failed (pre-commit hook?)" 1>&2; exit 1; }
 
 branches=$(echo "${3:-}" | tr "," "\n")
-first_branch=`git rev-parse --abbrev-ref HEAD`
 commit_hash=`git log -n 1 --pretty=format:"%H"`
 short_commit_hash=`git log -n 1 --pretty=format:"%h"`
 thanks_message="Committed and pushed <a href=\"https://git.drupalcode.org/project/drupal/commit/$short_commit_hash\">$short_commit_hash</a> to $first_branch"
